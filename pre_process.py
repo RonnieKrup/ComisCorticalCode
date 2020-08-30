@@ -42,7 +42,7 @@ def eddy(paths):
     cmd.append(get_command('fslroi', (f'{paths["raw_dat"]}/dif_PA.nii.gz', f'{paths["temp"]}/nodif_PA', 0, 1)))
     cmd.append(get_command('fslmerge', (paths["nodif"], f'{paths["raw_dat"]}/nodif_PA.nii.gz'),
                            t=f'{paths["temp"]}/AP_PA_b0.nii.gz'))
-    cmd.append(get_command('topup', imain=f'{paths["temp"]}/AP_PA_b0.nii.gz', datain={paths["datain"]},
+    cmd.append(get_command('topup', imain=f'{paths["temp"]}/AP_PA_b0.nii.gz', datain=CONFIG.DATAIN,
                            config='b02b0.cnf', out=f'{paths["temp"]}/topup_AP_PA_b0',
                            iout=f'{paths["temp"]}/topup_AP_PA_b0_iout', fout=f'{paths["temp"]}/topup_AP_PA_b0_fout'))
     cmd.append(get_command('fslmaths', (f'{paths["temp"]}/topup_AP_PA_b0_iout',), Tmean=paths["nodif"]))
@@ -50,8 +50,8 @@ def eddy(paths):
     cmd.append(get_command("denoise", (f'{paths["raw_dat"]}/dif_AP.nii.gz', f'{paths["raw_dat"]}/dif_AP.nii.gz',
                                        'force'), mask=paths["brain_mask"]))
     cmd.append(get_command(f'eddy_openmp', ('data_is_shelled',), imain=f'{paths["raw_dat"]}/dif_AP.nii.gz',
-                           mask=paths["brain_mask"], index=paths["index"], acqp=paths["datain"],
-                           bvecs=paths["bv"][0], bvals=paths["bv"][1], fwhm=0,
+                           mask=paths["brain_mask"], index=CONFIG.INDEX, acqp=CONFIG.DATAIN,
+                           bvecs=paths["bvecs"], bvals=paths["bvals"][1], fwhm=0,
                            topup=f'{paths["temp"]}/topup_AP_PA_b0', flm='quadratic', out=paths["data"]))
 
     environment = dict(os.environ)  # Copy the existing environment variables
@@ -167,13 +167,14 @@ def make_fod(paths):
     cmd = []
     cmd.append(get_command("dwi2response", ("dhollander", paths["data"], paths['res'], fr"{paths['temp']}/gm_res.txt",
                                             fr"{paths['temp']}/csf_res.txt", '-force'),
-                           mask=paths["brain_mask"], nthreads=CONFIG.NTHREADS, fslgrad=" ".join(paths["bv"])))
+                           mask=paths["brain_mask"], nthreads=CONFIG.NTHREADS,
+                           fslgrad=f"{paths['bvecs']} {paths['bvals']}"))
 
     cmd.append(get_command("dwi2fod msmt_csd", (paths["data"], paths["res"], paths["fod"],
                                                 fr"{paths['temp']}/gm_res.txt", fr"{paths['temp']}/gm_fod.mif"
                                                 fr"{paths['temp']}/csf_res.txt", fr"{paths['temp']}/csf_fod.mif",
                                                 "-force"),
-                           fslgrad=" ".join(paths["bv"]), nthreads=CONFIG.NTHREADS, mask=paths["brain_mask"]))
+                           fslgrad=f"{paths['bvecs']} {paths['bvals']}", nthreads=CONFIG.NTHREADS, mask=paths["brain_mask"]))
     if run_commands(cmd):
         print("eddy complete")
         shutil.rmtree(paths["temp"])
@@ -188,9 +189,9 @@ def generate_tracts(paths):
     diff = nb.load(paths['brain'])
     pixdim = diff.header['pixdim'][1]
     cmd.append(get_command("tckgen", (paths["fod"], paths["tracts"], "-force"), algorithm="Tensor_Det",
-                           select=CONFIG.NTRACTS, step=pixdim * 0.5, minlength=pixdim * CONFIG.MINSCALE,
-                           maxlength=pixdim * CONFIG.MAXSCALE, seed_image=paths["brain_mask"], act=paths["5tt"],
-                           fslgrad=" ".join(paths["bv"])))
+                           select=CONFIG.NTRACTS, step=pixdim * CONFIG.PIXSCALE, minlength=pixdim * CONFIG.MINSCALE,
+                           maxlength=pixdim * CONFIG.MAXSCALE, angle=CONFIG.ANGLE, seed_image=paths["brain_mask"],
+                           act=paths["5tt"], fslgrad=f"{paths['bvecs']} {paths['bvals']}"))
     cmd.append(get_command("tcksift", (paths["trats"], paths["fod"], paths["sifted_tracts"],
                                        "-force", "-fd_scale_gm"),
                            act=paths["5tt"], nthreads=CONFIG.NTHREADS, term_number=CONFIG.NTRACTS*0.1))
