@@ -8,30 +8,7 @@ import shutil
 # ~~~~~~~~~~~~ #
 
 
-def get_command(program, args=(), **kwargs):
-    result = []
-    result.append(program)
-    if args:
-        for arg in args:
-            result.append(arg)
-    for arg_name, arg_value in kwargs.items():
-        result.append(f'--{arg_name.lower()}={arg_value}')
-    return ' '.join(result)
 
-
-def to_log(cmd):
-    with open(CONFIG.LOG, 'a') as log:
-        log.write('\n')
-        log.write('\n'.join(cmd))
-
-
-def run_commands(cmd, environment=dict(os.environ)):
-    for command in cmd:
-        exit_code = call(command, shell=True, env=environment)
-        if exit_code != 0:
-            return False
-        to_log(cmd)
-    return True
 
 
 def eddy(paths):
@@ -206,6 +183,12 @@ def generate_tracts(paths):
 
 def sift_atlas(paths):
     cmd = []
+    self.commands.append(toolbox.get_command("labelconvert", (paths['atlas'], CONFIG.ATLAS_FOR_CONNECTOME,
+                                                              CONFIG.ATLAS_FOR_CONNECTOME.replace('.txt',
+                                                                                                  '_converted.txt'),
+                                                              paths["atlas"].replace(".nii.gz", "_connectome.nii.gz"),
+                                                              "force"),
+                                             nthreads=CONFIG.NTHREADS))
     cmd.append(get_command("tck2connectome", (paths["atlas"].replace(".nii.gz", "_connectome.nii.gz"),
                                               rf"paths['temp']/connectome", "-force"),
                            nthreads=CONFIG.NTHREADS, assignment_radial_search=2, out_assignments=rf"paths['temp']/out"))
