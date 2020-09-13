@@ -1,7 +1,7 @@
 import os
-from ComisCorticalCode import CONFIG
 from subprocess import call
 from glob import glob
+from pathlib import Path
 
 
 def clear_dir(path):
@@ -17,8 +17,7 @@ def find_file_name(names, base_path):
 
 
 def get_command(program, args=(), **kwargs):
-    result = []
-    result.append(program)
+    result = [program]
     if args:
         for arg in args:
             result.append(arg)
@@ -27,27 +26,23 @@ def get_command(program, args=(), **kwargs):
     return ' '.join(result)
 
 
-def to_log(cmd):
-    with open(CONFIG.LOG, 'a') as log:
-        log.write('\n')
-        log.write('\n'.join(cmd))
-
-
-
-
 def run_commands(cmd, environment=os.environ):
     for command in cmd:
+        print(command)
         exit_code = call(command, shell=True, env=environment)
         if exit_code != 0:
             return False
-        to_log(cmd)
     return True
 
 
 def make_link(past_run, files_to_link):
-    raise NotImplementedError
+    for new_file in files_to_link:
+        path = Path(new_file)
+        old_file = files_to_link.replace(path.stem, past_run)
+        os.link(old_file, new_file)
 
-def get_paths(base_dir, namre):
+
+def get_paths(base_dir, name):
     local_paths = {
         'raw_dat': 'raw_data/data.nii.gz',
         'temp': 'temp_{name}/',
@@ -74,7 +69,6 @@ def get_paths(base_dir, namre):
         name: os.path.join(base_dir, value)
         for name, value in local_paths.items()
     }
-
 
 
 

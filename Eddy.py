@@ -1,8 +1,9 @@
 from ComisCorticalCode import CONFIG,  toolbox
 import os
 
+
 class Eddy:
-    def __init__(self, raw_dat, temp, bv, nthreads, skip_smooth, index_datain):
+    def __init__(self, raw_dat, temp, bv, nthreads, index_datain):
         self.ap = os.path.join(raw_dat, 'dif_AP.nii.gz')
         self.ap_denoised = self.ap.replace('.nii.gz', '_denpised.nii.gz')
         self.pa = os.path.join(raw_dat, 'dif_PA.nii.gz')
@@ -18,7 +19,6 @@ class Eddy:
         self.commands = []
         self.env = dict(os.environ)  # Copy the existing environment variables
         self.env['OMP_NUM_THREADS '] = nthreads
-        self.skip_smooth = skip_smooth
         self.index_datain = index_datain
 
     @staticmethod
@@ -27,24 +27,24 @@ class Eddy:
         temp = paths["temp"]
         bv = [paths['bvecs'], paths['bvals']]
         nthreads = CONFIG.NTHREADS
-        skip_smooth = CONFIG.SKIP_SMOOTH
         index_datain = [paths["index"], paths["datain"]]
-        return Eddy(raw_dat, temp, bv, nthreads, skip_smooth, index_datain)
+        return Eddy(raw_dat, temp, bv, nthreads, index_datain)
 
     def run(self):
-        if (os.path.isfile(self.ap) and os.path.isfile(self.pa) and os.path.isfile(self.bvecs) and
-                os.path.isfile(self.bvals)) and not os.path.isfile(self.data):
-            if not os.path.isfile(self.topup):
-                self.make_topup()
+        if not os.path.isfile(self.data):
+            if (os.path.isfile(self.ap) and os.path.isfile(self.pa) and os.path.isfile(self.bvecs) and
+                    os.path.isfile(self.bvals)):
+                if not os.path.isfile(self.topup):
+                    self.make_topup()
 
-            if not os.path.isfile(self.nodif) or not os.path.isfile(self.brain):
-                self.make_brain()
+                if not os.path.isfile(self.nodif) or not os.path.isfile(self.brain):
+                    self.make_brain()
 
-            if not os.path.isfile(self.ap_denoised) and not self.skip_smooth:
-                self.denoise()
-            self.eddy()
-        else:
-            raise FileNotFoundError('Base Files Missing')
+                if not os.path.isfile(self.ap_denoised):
+                    self.denoise()
+                self.eddy()
+            else:
+                raise FileNotFoundError('Base Files Missing')
 
         toolbox.run_commands(self.commands, self.env)
         print('Eddy correction done')
