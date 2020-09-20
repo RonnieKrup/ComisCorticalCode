@@ -1,8 +1,11 @@
 from ComisCorticalCode import toolbox, CONFIG, CSV
 import os
 
+
 class Registrations:
-    def __init__(self, mprage, temp, brain, mprage2diff, atlas_template, template2mprage, atlas, subject_atlas):
+    # TODO: Add the '*, ' at the beginning to all other stages - this makes all the parameters keyword-ONLY!
+    def __init__(self, *, mprage, temp, brain, mprage2diff, atlas_template, template2mprage, atlas, subject_atlas):
+        # TODO: rempve commands from innit in all stages
         self.commands = []
         self.mprage = mprage
         self.mprage_brain = self.mprage.replace('.nii.gz', 'brain.nii.gz')
@@ -25,7 +28,15 @@ class Registrations:
         template2mprage = paths["template2mprage"]
         atlas = CONFIG.ATLAS
         subject_atlas = paths["atlas"]
-        return Registrations(mprage, temp, brain, mprage2diff, atlas_template, template2mprage, atlas, subject_atlas)
+        return Registrations(
+            mprage=mprage,
+            temp=temp,
+            brain=brain,
+            mprage2diff=mprage2diff,
+            atlas_template=atlas_template,
+            template2mprage=template2mprage,
+            atlas=atlas,
+            subject_atlas=subject_atlas)
 
     def run(self):
         if not os.path.isfile(self.mprage2diff):
@@ -50,7 +61,8 @@ class Registrations:
             else:
                 self.register_t12diff()
         toolbox.run_commands(self.commands)
-
+    
+    # TODO: rename command making functions in all stages
     def register_t12diff(self):
         self.commands.append(toolbox.get_command('bet', (self.mprage, self.mprage_brain, '-m'), f=0.2, g=0.2))
 

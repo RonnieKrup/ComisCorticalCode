@@ -4,6 +4,13 @@ from glob import glob
 from pathlib import Path
 
 
+# TODO: Consider wrapping commands with this, so that we can check that all files are there, and not just check
+# the return code. (Callers to get_command will need to specify the input and output files)
+class ExternalToolExecution:
+    def __init__(self, actual_command, input_files=(), output_files=()):
+        pass
+
+
 def clear_dir(path):
     for f in glob(f'{path}/*'):
         os.remove(f)
@@ -18,9 +25,8 @@ def find_file_name(names, base_path):
 
 def get_command(program, args=(), **kwargs):
     result = [program]
-    if args:
-        for arg in args:
-            result.append(arg)
+    for arg in args:
+        result.append(arg)
     for arg_name, arg_value in kwargs.items():
         result.append(f'--{arg_name.lower()}={arg_value}')
     return ' '.join(result)

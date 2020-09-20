@@ -16,7 +16,7 @@ def update_new_runs(name):
     shutil.copyfile(CONFIG.RUNS.replace('.csv', '_new.csv'), CONFIG.RUNS)
     runs = pd.read_csv(CONFIG.RUNS.replace('.csv', '_new.csv'))
     vals = ['MINVOL', 'STEPSCALE', 'LENSCALE', 'ANGLE', 'NTRACTS', 'DATASET', 'ATLAS']
-    row = pd.Series({v: eval(f'CONFIG.{v}') for v in vals}, name=name)
+    row = pd.Series({v: getattr(CONFIG, v) for v in vals}, name=name)
     runs.append(row)
     runs.to_csv(CONFIG.RUNS.replace('.csv', '_new.csv'))
 
@@ -31,7 +31,7 @@ def find_past_runs(params_to_compare):
     runs = pd.read_csv(runs_path, index_col='Name')
     relevant_runs = runs
     for param in params_to_compare:
-        relevant_runs = relevant_runs[relevant_runs[param] == eval(f'CONFIG.{param}')]
+        relevant_runs = relevant_runs[relevant_runs[param] == getattr(CONFIG, param)]
     if len(relevant_runs):
         return relevant_runs.index[0]
     else:

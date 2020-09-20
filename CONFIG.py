@@ -1,7 +1,3 @@
-import os
-import pandas as pd
-from ComisCorticalCode import toolbox
-
 MINVOL = 259209    # for theBase. 577275 for HCP
 SUBJECT_HOME = '/state/partition1/home/ronniek/ronniek/'
 STEPSCALE = 0.5
