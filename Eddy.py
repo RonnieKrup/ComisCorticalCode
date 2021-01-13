@@ -1,9 +1,9 @@
-from ComisCorticalCode import CONFIG,  toolbox
+from ComisCorticalCode.toolbox import ExternalToolExecution
 import os
 
 
 class Eddy:
-    def __init__(self, raw_dat, temp, bv, nthreads, index_datain):
+    def __init__(self, *, raw_dat, temp, bv, nthreads, index_datain):
         self.ap = os.path.join(raw_dat, 'dif_AP.nii.gz')
         self.ap_denoised = self.ap.replace('.nii.gz', '_denpised.nii.gz')
         self.pa = os.path.join(raw_dat, 'dif_PA.nii.gz')
@@ -16,56 +16,69 @@ class Eddy:
         self.bvecs = bv[0]
         self.bvals = bv[1]
         self.data = os.path.join(raw_dat, 'data.nii.gz')
-        self.commands = []
         self.env = dict(os.environ)  # Copy the existing environment variables
         self.env['OMP_NUM_THREADS '] = nthreads
         self.index_datain = index_datain
 
     @staticmethod
-    def create_from_dict(paths):
+    def create_from_dict(paths, config):
         raw_dat = paths["raw_dat"]
         temp = paths["temp"]
         bv = [paths['bvecs'], paths['bvals']]
-        nthreads = CONFIG.NTHREADS
+        nthreads = config.NTHREADS
         index_datain = [paths["index"], paths["datain"]]
-        return Eddy(raw_dat, temp, bv, nthreads, index_datain)
+        return Eddy(raw_dat=raw_dat,
+                    temp=temp,
+                    bv=bv,
+                    nthreads=nthreads,
+                    index_datain=index_datain)
 
     def run(self):
+        commands = []
         if not os.path.isfile(self.data):
             if (os.path.isfile(self.ap) and os.path.isfile(self.pa) and os.path.isfile(self.bvecs) and
                     os.path.isfile(self.bvals)):
                 if not os.path.isfile(self.topup):
-                    self.make_topup()
+                    commands.extend(self.make_commands_topup())
 
                 if not os.path.isfile(self.nodif) or not os.path.isfile(self.brain):
-                    self.make_brain()
+                    commands.extend(self.make_commands_make_brain())
 
                 if not os.path.isfile(self.ap_denoised):
-                    self.denoise()
-                self.eddy()
+                    commands.extend(self.make_commands_denoise())
+                self.make_commands_eddy()
             else:
                 raise FileNotFoundError('Base Files Missing')
 
-        toolbox.run_commands(self.commands, self.env)
+        for command in commands:
+            command.run_command(self.env)
         print('Eddy correction done')
 
-    def make_topup(self):
-        self.commands.append(toolbox.get_command('fslroi', (self.ap, self.nodif, 0, 1)))
-        self.commands.append(toolbox.get_command('fslroi', (self.pa, self.nodif_pa, 0, 1)))
-        self.commands.append(toolbox.get_command('fslmerge', (self.nodif, self.nodif_pa), t=self.merged_b0))
-        self.commands.append(toolbox.get_command('topup', imain=self.merged_b0, datain=self.index_datain[1],
-                                                 config='b02b0.cnf', out=f'{self.topup}out', iout=self.topup,
-                                                 fout=f'{self.topup}_fout'))
+    def make_commands_topup(self):
+        commands = []
+        commands.append(ExternalToolExecution.get_command('fslroi', (self.ap, self.nodif, 0, 1)))
+        commands.append(ExternalToolExecution.get_command('fslroi', (self.pa, self.nodif_pa, 0, 1)))
+        commands.append(ExternalToolExecution.get_command('fslmerge', (self.nodif, self.nodif_pa), t=self.merged_b0))
+        commands.append(ExternalToolExecution.get_command('topup', imain=self.merged_b0, datain=self.index_datain[1],
+                                            config='b02b0.cnf', out=f'{self.topup}out', iout=self.topup,
+                                            fout=f'{self.topup}_fout'))
+        return commands
 
-    def make_brain(self):
-        self.commands.append(toolbox.get_command('fslmaths', (self.topup,), Tmean=self.nodif))
-        self.commands.append(toolbox.get_command('bet', (self.nodif, self.brain, '-m'), f=0.2))
+    def make_commands_make_brain(self):
+        commands = []
+        commands.append(ExternalToolExecution.get_command('fslmaths', (self.topup,), Tmean=self.nodif))
+        commands.append(ExternalToolExecution.get_command('bet', (self.nodif, self.brain, '-m'), f=0.2))
+        return commands
 
-    def denoise(self):
-        self.commands.append(toolbox.get_command("denoise", (self.ap_denoised, 'force'), mask=self.mask))
+    def make_commands_denoise(self):
+        commands = []
+        commands.append(ExternalToolExecution.get_command("denoise", (self.ap_denoised, 'force'), mask=self.mask))
+        return commands
 
-    def eddy(self):
-        self.commands.append(toolbox.get_command(f'eddy_openmp', ('data_is_shelled',), imain=self.ap_denoised,
-                                                 mask=self.mask, index=self.index_datain[0], acqp=self.index_datain[1],
-                                                 bvecs=self.bvecs, bvals=self.bvals, fwhm=0, topup=f'{self.topup}out',
-                                                 flm='quadratic', out=self.data))
+    def make_commands_eddy(self):
+        commands = []
+        commands.append(ExternalToolExecution.get_command(f'eddy_openmp', ('data_is_shelled',), imain=self.ap_denoised,
+                                            mask=self.mask, index=self.index_datain[0], acqp=self.index_datain[1],
+                                            bvecs=self.bvecs, bvals=self.bvals, fwhm=0, topup=f'{self.topup}out',
+                                            flm='quadratic', out=self.data))
+        return commands

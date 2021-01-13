@@ -3,17 +3,52 @@ from subprocess import call
 from glob import glob
 from pathlib import Path
 
+DRY_RUN = False
+
 
 # TODO: Consider wrapping commands with this, so that we can check that all files are there, and not just check
 # the return code. (Callers to get_command will need to specify the input and output files)
 class ExternalToolExecution:
-    def __init__(self, actual_command, input_files=(), output_files=()):
-        pass
+    def __init__(self, program, input_files=(), output_files=(), args=(), **kwargs):
+        self.program = program
+        self.input_files = input_files
+        self.output_files = output_files
+        self.args = args
+        self.keyword_args = kwargs
+        self.command = ""
+
+    @staticmethod
+    def get_command(program, input_files=(), output_files=(), args=(), **kwargs):
+        command = ExternalToolExecution(program, input_files, output_files, args, **kwargs)
+        command.create_command()
+        return command
+
+    def create_command(self):
+        result = [self.program]
+        for arg in self.args:
+            result.append(arg)
+        for arg_name, arg_value in self.keyword_args.items():
+            result.append(f'--{arg_name.lower()}={arg_value}')
+        self.command = " ".join(result)
+
+    def run_command(self, environment):
+        print(self.command)
+        if not DRY_RUN:
+            exit_code = call(self.command, shell=True, env=environment)
+        else:
+            exit_code = 0
+            print(f'this is a dry run. {self.program} not run.')
+        if exit_code != 0:
+            return False
+
 
 
 def clear_dir(path):
-    for f in glob(f'{path}/*'):
-        os.remove(f)
+    if not DRY_RUN:
+        for f in glob(f'{path}/*'):
+            os.remove(f)
+    else:
+        print(f"this is a dry run. folder {path} not cleared.")
 
 
 def find_file_name(names, base_path):
@@ -32,20 +67,14 @@ def get_command(program, args=(), **kwargs):
     return ' '.join(result)
 
 
-def run_commands(cmd, environment=os.environ):
-    for command in cmd:
-        print(command)
-        exit_code = call(command, shell=True, env=environment)
-        if exit_code != 0:
-            return False
-    return True
-
-
 def make_link(past_run, files_to_link):
     for new_file in files_to_link:
         path = Path(new_file)
         old_file = files_to_link.replace(path.stem, past_run)
-        os.link(old_file, new_file)
+        if not DRY_RUN:
+            os.link(old_file, new_file)
+        else:
+            print(old_file, new_file)
 
 
 def get_paths(base_dir, name):
