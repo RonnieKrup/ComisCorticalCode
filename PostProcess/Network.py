@@ -26,6 +26,25 @@ def get_all_graphs(stats, dataset, return_cm=True):
     return graphs
 
 
+def get_msp_both_hemis(cms):
+    msps = []
+    for hemi in ['L', 'R']:
+        cm = np.array(cms[hemi])
+        cm2 = 1 / cm
+        cm2[cm == 0] = 0
+        cm2 = 200 * cm2
+        g = nx.from_numpy_matrix(cm2)
+        msp = dict(nx.all_pairs_dijkstra_path_length(g))
+        meanDs = []
+        for i in msp:
+            pairs = msp[i]
+            d = 1 / np.array([x for x in pairs.values() if x > 0])
+            if len(d) > 0:
+                meanDs.append(np.mean(d))
+        msps.append(1 / np.mean(np.array(meanDs)))
+    return np.mean(msps)
+
+
 def get_efficiency_both_hemis_from_cm(cm):
     raise NotImplementedError
 

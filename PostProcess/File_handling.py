@@ -1,4 +1,6 @@
+import nibabel as nib
 import pandas as pd
+import scipy.io as spio
 
 
 def read_atlas(path):
@@ -52,3 +54,12 @@ def get_all_cm(stats, dataset):
             cm[cm < 0] = 0
             all_cm[hemi].append(cm)
     return all_cm
+
+def get_tck_tracts(tracts, data):
+    dif = nib.load(data)
+    pixdim = dif.header['pixdim'][1]
+    tck = nib.streamlines.load(tracts)
+    tck = tck.tractogram
+    tck_converted = tck.apply_affine(np.linalg.inv(dif.affine))
+    st = nib.array([i for i in tck_converted.streamlines])
+    return st, pixdim

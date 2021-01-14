@@ -18,5 +18,13 @@ def run_for_sub(subject_path, run_name, out_path):
         CC.toolbox.clear_dir(paths['temp'])
 
 
+
+def test_run():
+    config = CC.CONFIG.CONFIG.from_json("/state/partition1/home/ronniek/ronniek/tb4e_test/test.json")
+    print(config)
+
+
+
 if __name__ == '__main__':
-    run_for_sub(*sys.argv[1:])
+    #run_for_sub(*sys.argv[1:])
+    test_run()
