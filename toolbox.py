@@ -1,80 +1,94 @@
 import os
-from subprocess import call
+import subprocess
+
 from glob import glob
 from pathlib import Path
 
 DRY_RUN = False
 
 
-# TODO: Consider wrapping commands with this, so that we can check that all files are there, and not just check
-# the return code. (Callers to get_command will need to specify the input and output files)
-class ExternalToolExecution:
-    def __init__(self, program, input_files=(), output_files=(), args=(), **kwargs):
+class ExternalCommand:
+    """
+    Wrapper around subprocess.call to create the commandline string and verify input/output file existence.
+    """
+    def __init__(self, program, *args, input_files=(), output_files=(), **kwargs):
         self.program = program
         self.input_files = input_files
         self.output_files = output_files
         self.args = args
+        for arg in args:
+            if isinstance(arg, (list, tuple)):
+                # TODO: Remove this when all the code works
+                raise ValueError(f'Arg {arg} is a list/tuple - did you pass a tuple instead of all the args directly?')
+            if not isinstance(arg, (str, int, float)):
+                raise ValueError(f'Arg {arg} is not a simple type - Not sure this will convert as expected')
         self.keyword_args = kwargs
         self.command = ""
 
     @staticmethod
-    def get_command(program, input_files=(), output_files=(), args=(), **kwargs):
-        command = ExternalToolExecution(program, input_files, output_files, args, **kwargs)
-        command.create_command()
+    def get_command(program, *args, input_files=(), output_files=(), **kwargs):
+        command = ExternalCommand(program, *args, input_files=input_files, output_files=output_files, **kwargs)
+        command.create_command_()
         return command
 
-    def create_command(self):
+    def create_command_(self):
         result = [self.program]
         for arg in self.args:
-            result.append(arg)
+            result.append(str(arg))
         for arg_name, arg_value in self.keyword_args.items():
             result.append(f'--{arg_name.lower()}={arg_value}')
         self.command = " ".join(result)
 
-    def run_command(self, environment):
-        print(self.command)
-        if not DRY_RUN:
-            exit_code = call(self.command, shell=True, env=environment)
-        else:
-            exit_code = 0
-            print(f'this is a dry run. {self.program} not run.')
-        if exit_code != 0:
-            return False
+    @staticmethod
+    def find_missing_files(paths):
+        """Returns which files do not exist"""
+        return [path for path in paths if not os.path.isfile(path)]
 
+    def check_input_files_exist(self):
+        """Raise an exception if input files are missing"""
+        missing = self.find_missing_files(self.input_files)
+        if missing:
+            raise Exception(f'Missing input files {missing}')
+
+    def check_output_files_exist(self):
+        """Raise an exception if output files are missing"""
+        missing = self.find_missing_files(self.output_files)
+        if missing:
+            raise Exception(f'Missing output files {missing}')
+
+    def run_command(self, environment=None):
+        """Runs the command, raises an exception on missing input/output fails or failed command."""
+        print(self.command)
+        if DRY_RUN:
+            print(f'this is a dry run. {self.program} not run and input/output files not checked.')
+            return
+
+        self.check_input_files_exist()
+        # Raises an error if the command has a non-zero exit code
+        subprocess.check_call(self.command, shell=True, env=(environment or os.environ))
+        self.check_output_files_exist()
 
 
 def clear_dir(path):
-    if not DRY_RUN:
-        for f in glob(f'{path}/*'):
-            os.remove(f)
-    else:
+    """Removes all files in a directory."""
+    if DRY_RUN:
         print(f"this is a dry run. folder {path} not cleared.")
+        return
+    for f in glob(f'{path}/*'):
+        os.remove(f)
 
 
-def find_file_name(names, base_path):
-    for path in names:
-        if os.path.isfile(os.path.join(base_path, path)):
-            return path
-    return None
-
-
-def get_command(program, args=(), **kwargs):
-    result = [program]
-    for arg in args:
-        result.append(arg)
-    for arg_name, arg_value in kwargs.items():
-        result.append(f'--{arg_name.lower()}={arg_value}')
-    return ' '.join(result)
-
-
-def make_link(past_run, files_to_link):
+def make_link(past_run_name, files_to_link):
+    """For every file in files_to_link, link to a file with the same suffix and path but named as `past_run`"""
+    # TODO: Create better documentation
+    # WARNING WARNING WARNING - THIS MIGHT NOT DO WHAT YOU EXPECT
     for new_file in files_to_link:
         path = Path(new_file)
-        old_file = files_to_link.replace(path.stem, past_run)
+        old_file = files_to_link.replace(path.stem, past_run_name)
         if not DRY_RUN:
             os.link(old_file, new_file)
         else:
-            print(old_file, new_file)
+            print(f'Would link {old_file} as {new_file}')
 
 
 def get_paths(base_dir, name):

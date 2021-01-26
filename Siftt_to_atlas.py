@@ -1,10 +1,11 @@
-from ComisCorticalCode import CSV, toolbox
+from ComisCorticalCode import CSV, toolbox, stage
 import os
 import nibabel as nb
 import numpy as np
 # TODO: change file name without killing it in git?
 
-class Sift_to_atlas():
+
+class Sift_to_atlas(stage.Stage):
     def __init__(self, *, atlas, atlas_for_connectome, temp, nthreads, tracts, fod, sifted_atlas_tracts, segmentation,
                  ntracts):
         self.atlas = atlas
@@ -41,40 +42,39 @@ class Sift_to_atlas():
                              segmentation=segmentation,
                              ntracts=ntracts)
 
-    def run(self):
-        commands = []
-        if not os.path.isfile(self.fod):
-            past_run = CSV.find_past_runs(['MINVOL', 'NTRACTS', 'LINSCALE', 'STEPSCALE', 'ANGLE', 'ATLAS'])
-            if past_run:
-                needed_files = (self.atlas_tracts,)
-                toolbox.make_link(past_run, needed_files)
-            else:
-                commands.extend(self.make_commands_sift_atlas())
-        for command in commands:
-            command.run_commands(commands)
+    def parameters_for_comparing_past_runs(self):
+        return ['MINVOL', 'NTRACTS', 'LINSCALE', 'STEPSCALE', 'ANGLE', 'ATLAS']
 
-    def make_commands_sift_atlas(self):
-        commands = []
-        commands.append(toolbox.ExternalToolExecution.get_command("labelconvert",
-                                                                  (self.atlas, self.atlas_for_connectome,
-                                                                   self.atlas_for_connectome('.txt', '_converted.txt'),
-                                                                   self.connectome_atlas, "force"),
-                                                                  nthreads=self.nthreads))
-        commands.append(toolbox.ExternalToolExecution.get_command("tck2connectome",
-                                                                  (self.connectome_atlas,
-                                                                   os.path.join(self.temp, 'connectome'), "-force"),
-                                                                  nthreads=self.nthreads, assignment_radial_search=2,
-                                                                  out_assignments=self.connectome_out))
-        commands.append(toolbox.ExternalToolExecution.get_command("connectome2tck", (self.tracts, self.connectome_out,
-                                                                                     self.atlas_tracts, "-exclusive",
-                                                                                     "-keep_self", "-force"),
-                                                                  nthreads=self.nthreads, nodes=self.list_of_nodes(),
-                                                                  files="single"))
-        commands.append(toolbox.ExternalToolExecution.get_command("tcksift", (self.atlas_tracts, self.fod,
-                                                                              self.sifted_atlas_tracts, "-force",
-                                                                              "-fd_scale_gm"), act=self.segmentation,
-                                                                  nthreads=self.nthreads,
-                                                                  term_number=self.ntracts * 0.1))
+    def needed_files(self):
+        return self.atlas_tracts,
+
+    def make_commands_for_stage(self):
+        commands = [
+                    toolbox.ExternalCommand.get_command("labelconvert", self.atlas, self.atlas_for_connectome,
+                                                        self.atlas_for_connectome('.txt', '_converted.txt'),
+                                                        self.connectome_atlas, "force", nthreads=self.nthreads,
+                                                        input_files=(self.atlas, self.atlas_for_connectome),
+                                                        output_files=(self.atlas_for_connectome('.txt',
+                                                                                                '_converted.txt'),
+                                                        self.connectome_atlas)),
+                    toolbox.ExternalCommand.get_command("tck2connectome", self.connectome_atlas,
+                                                        os.path.join(self.temp, 'connectome'), "-force",
+                                                        nthreads=self.nthreads, assignment_radial_search=2,
+                                                        out_assignments=self.connectome_out,
+                                                        input_files=(self.connectome_atlas,),
+                                                        output_files=(self.connectome_out,)),
+                    toolbox.ExternalCommand.get_command("connectome2tck", self.tracts, self.connectome_out,
+                                                        self.atlas_tracts, "-exclusive", "-keep_self", "-force",
+                                                        nthreads=self.nthreads, nodes=self.list_of_nodes(),
+                                                        files="single", input_files=(self.tracts, self.connectome_out),
+                                                        output_files=(self.atlas_tracts,)),
+                    toolbox.ExternalCommand.get_command("tcksift", self.atlas_tracts, self.fod,
+                                                        self.sifted_atlas_tracts, "-force", "-fd_scale_gm",
+                                                        act=self.segmentation, nthreads=self.nthreads,
+                                                        term_number=self.ntracts * 0.1,
+                                                        input_files=(self.atlas_tracts, self.fod, self.segmentation),
+                                                        output_files=(self.sifted_atlas_tracts,))
+                    ]
         return commands
 
     def list_of_nodes(self):

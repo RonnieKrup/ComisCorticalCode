@@ -32,9 +32,9 @@ class CONFIG:
         config = CONFIG()
         with open(json_path) as json_file:
             json_data = json.load(json_file)
-        for key, value in json_data.items:
+        for key, value in json_data.items():
             setattr(config, key, value)
-        config.check_empty_values()
+        return config.check_empty_values()
 
     @staticmethod
     def default_config():

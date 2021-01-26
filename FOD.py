@@ -1,7 +1,7 @@
-from ComisCorticalCode import CONFIG, CSV, toolbox
+from ComisCorticalCode import toolbox, stage
 import os
 
-class FOD:
+class FOD(stage.Stage):
     def __init__(self, data, response, temp, mask, nthreads, fod, bv):
         self.commands = []
         self.data = data
@@ -14,33 +14,36 @@ class FOD:
         self.bv = bv
 
     @staticmethod
-    def create_from_dict(paths):
+    def create_from_dict(paths, config):
         data = paths['data']
         response = paths['res']
         temp = paths['temp']
         mask = paths['mask']
-        nthreads = CONFIG.NTHREADS
+        nthreads = config.NTHREADS
         fod = paths['fod']
         bv = [paths['bvecs'], paths['bvals']]
         return FOD(data, response, temp, mask, nthreads, fod, bv)
 
-    def run(self):
-        if not os.path.isfile(self.fod):
-            past_run = CSV.find_past_runs(['MINVOL'])
-            if past_run:
-                needed_files = (self.fod,)
-                toolbox.make_link(past_run, needed_files)
-            else:
-                self.make_fod()
-        toolbox.run_commands(self.commands)
+    def needed_files(self):
+        return self.fod,
 
-    def make_fod(self):
-        self.commands.append(
-            toolbox.get_command("dwi2response", ("dhollander", self.data, self.response, " ".join(self.responses),
-                                                 '-force'), mask=self.mask, nthreads=self.nthreads,
-                                fslgrad=" ".join(self.bv)))
+    def parameters_for_comparing_past_runs(self):
+        return ['MINVOL']
 
-        self.commands.append(toolbox.get_command("dwi2fod msmt_csd", (self.data, self.response, self.fod,
-                                                                      " ".join(sum(zip(self.responses, self.fods), ())),
-                                                                      "-force"), fslgrad=" ".join(self.bv),
-                                                 nthreads=self.nthreads, mask=self.mask))
+    def make_commands_for_stage(self):
+        # TODO: ask barak about the lists
+        commands = [
+                    toolbox.ExternalCommand.get_command("dwi2response", "dhollander", self.data, self.response,
+                                                        " ".join(self.responses), '-force', mask=self.mask,
+                                                        nthreads=self.nthreads, fslgrad=" ".join(self.bv),
+                                                        input_files=(self.data, self.mask, self.bv[0], self.bv[1]),
+                                                        output_files=tuple([self.response] +
+                                                                           [f for f in self.responses])),
+                    toolbox.ExternalCommand.get_command("dwi2fod msmt_csd", self.data, self.response, self.fod,
+                                                        " ".join(sum(zip(self.responses, self.fods), ())), "-force",
+                                                        fslgrad=" ".join(self.bv), nthreads=self.nthreads,
+                                                        mask=self.mask, input_files=(self.data, self.response,
+                                                                                     self.bv[0], self.bv[1], self.mask),
+                                                        output_files=self.fod)
+                   ]
+        return commands

@@ -1,10 +1,9 @@
 import os
-from ComisCorticalCode import CONFIG, toolbox, CSV
+from ComisCorticalCode import CONFIG, toolbox, CSV, stage
 
 
-class Segmentation:
+class SegmentationStage(stage.Stage):
     def __init__(self, mprage, segmentation, mprage2diff, brain, temp, nthreads, raw_dat):
-        self.commands = []
         self.env = dict(os.environ)  # Copy the existing environment variables
         self.env['SGE_ROOT'] = ''
         self.mprage_brain = mprage.replace('.nii.gz', 'brain.nii.gz')
@@ -16,37 +15,61 @@ class Segmentation:
         self.nthreads = nthreads
 
     @staticmethod
-    def create_from_dict(paths):
+    def create_from_dict_(cls, paths, config):
         mprage = paths['mprage']
         segmentation = paths["5tt"]
         mprage2diff = paths['mprage2diff']
         brain = paths['brain']
         temp = paths['temp']
-        nthreads = CONFIG.NTHREADS
+        nthreads = config.NTHREADS
         raw_dat = paths['raw_data']
-        return Segmentation(mprage, segmentation, mprage2diff, brain, temp, nthreads, raw_dat)
+        return cls(mprage, segmentation, mprage2diff, brain, temp, nthreads, raw_dat)
 
-    def run(self):
-        if not os.path.isfile(self.segmentation_t1):
-            self.segment()
-        past_run = CSV.find_past_runs(['MINVOL'])
-        if past_run:
-            needed_files = (self.segmentation,)
-            toolbox.make_link(past_run, needed_files)
-        else:
-            self.register_segmentation()
-        toolbox.run_commands(self.commands)
 
-    def segment(self):
+class Segmentation(SegmentationStage):
+    def needed_files(self):
+        return self.segmentation_t1
+
+    def parameters_for_comparing_past_runs(self):
+        return []
+
+    @staticmethod
+    def create_from_dict(paths, config):
+        return SegmentationStage.create_from_dict_(Segmentation, paths, config)
+
+    def make_commands(self):
         program_path = '/state/partition1/home/ronniek/mrtrix3/bin/5ttgen'
+        commands = [
+            toolbox.ExternalCommand.get_command(program_path, 'fsl', self.mprage_brain, self.segmentation_t1,
+                                                '-premasked', '-nocrop', '-f', input_files=(self.mprage_brain,),
+                                                output_files=(self.segmentation_t1,))
+        ]
+        return commands
 
-        self.commands.append(toolbox.get_command(program_path, ('fsl', self.mprage_brain, self.segmentation_t1,
-                                                                '-premasked', '-nocrop', '-f')))
 
-    def register_segmentation(self):
-        self.commands.append(toolbox.get_command("transformconvert", ("-force", self.mprage2diff, self.mprage_brain,
-                                                                      self.brain, 'flirt_import',
-                                                                      self.sgmentation_affine)))
-        self.commands.append(toolbox.get_command("mrtransform", (self.segmentation_t1, self.segmentation, "-force"),
-                                                 nthreads=self.nthreads, linear=self.sgmentation_affine))
+class SegmentRegistration(SegmentationStage):
+    def needed_files(self):
+        return self.segmentation
+
+    def parameters_for_comparing_past_runs(self):
+        return ['MINVOL']
+
+    @staticmethod
+    def create_from_dict(paths, config):
+        return SegmentationStage.create_from_dict_(SegmentRegistration, paths, config)
+
+    def make_commands_for_stage(self):
+        commands = [
+                    toolbox.ExternalCommand.get_command("transformconvert", "-force", self.mprage2diff,
+                                                        self.mprage_brain, self.brain, 'flirt_import',
+                                                        self.sgmentation_affine,
+                                                        input_files=(self.mprage2diff, self.mprage_brain, self.brain),
+                                                        output_files=(self.sgmentation_affine,)),
+                    toolbox.ExternalCommand.get_command("mrtransform", self.segmentation_t1, self.segmentation,
+                                                        "-force", nthreads=self.nthreads,
+                                                        linear=self.sgmentation_affine,
+                                                        input_files=(self.segmentation_t1, self.sgmentation_affine),
+                                                        output_files=(self.segmentation,))
+                   ]
+        return commands
 

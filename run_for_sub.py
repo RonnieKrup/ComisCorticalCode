@@ -4,7 +4,8 @@ import os
 
 
 def generate_stages_to_run():
-    stages = [Eddy.Eddy, Registrations.Registrations, Segmentation.Segmentation,
+    stages = [Eddy.Eddy, Registrations.RegistrationT12diff, Registrations.RegistrationTemplate2t1,
+              Registrations.RegistrationAtlas, Segmentation.Segmentation,
               Generate_tracts.Generate_tracts, Siftt_to_atlas.Sift_to_atlas]
     return stages
 
@@ -18,11 +19,10 @@ def run_for_sub(subject_path, run_name, out_path):
         toolbox.clear_dir(paths['temp'])
 
 
-
 def test_run():
+    toolbox.DRY_RUN = True  # Don't actually run anything or touch files
     config = CONFIG.CONFIG.from_json("/state/partition1/home/ronniek/ronniek/tb4e_test/test.json")
     print(config)
-
 
 
 if __name__ == '__main__':

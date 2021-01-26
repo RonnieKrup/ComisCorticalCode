@@ -1,9 +1,9 @@
-from ComisCorticalCode import CSV, toolbox
+from ComisCorticalCode import CSV, toolbox, stage
 import nibabel as nb
 import os
 
 
-class Generate_tracts:
+class Generate_tracts(stage.Stage):
     def __init__(self, *, brain, fod, tracts, ntracts, lenscale, stepscale, angle, mask, segmentation, bv, sifted_tracts,
                  nthreads):
         self.brain = brain
@@ -46,33 +46,34 @@ class Generate_tracts:
                                sifted_tracts=sifted_tracts,
                                nthreads=nthreads)
 
-    def run(self):
-        commands = []
-        if not os.path.isfile(self.fod):
-            past_run = CSV.find_past_runs(['MINVOL', 'NTRACTS', 'LINSCALE', 'STEPSCALE', 'ANGLE'])
-            if past_run:
-                needed_files = (self.tracts, self.sifted_tracts)
-                toolbox.make_link(past_run, needed_files)
-            else:
-                commands.extend(self.make_commands_generate_tracts())
-        for command in commands:
-            command.run_commands(commands)
+    @property
+    def needed_files(self):
+        """The files that are required to exist for this stage to finish."""
+        return self.tracts, self.sifted_tracts
 
-    def make_commands_generate_tracts(self):
-        commands = []
+    @property
+    def parameters_for_comparing_past_runs(self):
+        """If these parameters are the same in a previous run, we can re-use the results."""
+        return 'MINVOL', 'NTRACTS', 'LINSCALE', 'STEPSCALE', 'ANGLE'
+
+    def make_commands_for_stage(self):
+        """If needed to generate the stage output, these commands need to run."""
         diff = nb.load(self.brain)
         pixdim = diff.header['pixdim'][1]
-        commands.append(toolbox.ExternalToolExecution.get_command("tckgen", (self.fod, self.tracts, "-force"),
-                                                                  algorithm="SD_STREAM", select=self.ntracts,
-                                                                  step=pixdim * self.stepscale,
-                                                                  minlength=pixdim * self.lenscale[0],
-                                                                  maxlength=pixdim * self.lenscale[0],
-                                                                  angle=self.angle, seed_image=self.mask,
-                                                                  act=self.segmentation, fslgrad=" ".join(self.bv)))
+        commands = [
+                    toolbox.ExternalCommand.get_command("tckgen", self.fod, self.tracts, "-force",
+                                                        algorithm="SD_STREAM", select=self.ntracts,
+                                                        step=pixdim * self.stepscale,
+                                                        minlength=pixdim * self.lenscale[0],
+                                                        maxlength=pixdim * self.lenscale[0], angle=self.angle,
+                                                        seed_image=self.mask, act=self.segmentation,
+                                                        fslgrad=" ".join(self.bv), output_files=(self.tracts,),
+                                                        input_files=(self.fod, self.mask, self.segmentation)),
 
-        commands.append(toolbox.ExternalToolExecution.get_command("tcksift", (self.tracts, self.fod, self.sifted_tracts,
-                                                                              "-force", "-fd_scale_gm"),
-                                                                  act=self.segmentation, nthreads=self.nthreads,
-                                                                  term_number=self.ntracts*0.1))
+                    toolbox.ExternalCommand.get_command("tcksift", self.tracts, self.fod, self.sifted_tracts, "-force",
+                                                        "-fd_scale_gm", act=self.segmentation, nthreads=self.nthreads,
+                                                        term_number=self.ntracts*0.1,
+                                                        input_files=(self.tracts, self.fod, self.segmentation),
+                                                        output_files=(self.sifted_tracts,))
+                    ]
         return commands
-
