@@ -60,7 +60,7 @@ class Eddy(stage.BaseStage):
     def make_commands_topup(self):
         commands = [
                     ExternalCommand.get_command('fslroi', self.ap, self.nodif, 0, 1, input_files=(self.ap,),
-                                                                output_files=(self.nodif,)),
+                                                output_files=(self.nodif,)),
                     ExternalCommand.get_command('fslroi', self.pa, self.nodif_pa, 0, 1, input_files=(self.pa,),
                                                 output_files=(self.nodif_pa,)),
                     ExternalCommand.get_command('fslmerge', self.nodif, self.nodif_pa, t=self.merged_b0,

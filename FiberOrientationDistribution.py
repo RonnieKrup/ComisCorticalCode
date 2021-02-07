@@ -1,7 +1,8 @@
 from ComisCorticalCode import toolbox, stage
 import os
 
-class FOD(stage.Stage):
+
+class FiberOrientationDistribution(stage.Stage):
     def __init__(self, data, response, temp, mask, nthreads, fod, bv):
         self.commands = []
         self.data = data
@@ -22,7 +23,7 @@ class FOD(stage.Stage):
         nthreads = config.NTHREADS
         fod = paths['fod']
         bv = [paths['bvecs'], paths['bvals']]
-        return FOD(data, response, temp, mask, nthreads, fod, bv)
+        return FiberOrientationDistribution(data, response, temp, mask, nthreads, fod, bv)
 
     def needed_files(self):
         return self.fod,

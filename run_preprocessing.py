@@ -38,7 +38,8 @@ def run(config):
 
 
 def make_sh_files(subject_path, run_name, out_path):
-    with open('send_to_q.sh', 'r') as f:
+    MY_DIR = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(MY_DIR, 'send_to_q.sh'), 'r') as f:
         template_file = f.read()
     sub = os.path.split(subject_path)[-1]
     template_file.replace('SCRIPT_TO_RUN', 'run_for_sub.py')

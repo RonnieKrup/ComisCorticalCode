@@ -3,9 +3,9 @@ import nibabel as nb
 import os
 
 
-class Generate_tracts(stage.Stage):
-    def __init__(self, *, brain, fod, tracts, ntracts, lenscale, stepscale, angle, mask, segmentation, bv, sifted_tracts,
-                 nthreads):
+class GenerateTracts(stage.Stage):
+    def __init__(self, *, brain, fod, tracts, ntracts, lenscale, stepscale, angle, mask, segmentation, bv,
+                 sifted_tracts, nthreads):
         self.brain = brain
         self.fod = fod
         self.tracts = tracts
@@ -33,18 +33,18 @@ class Generate_tracts(stage.Stage):
         bv = [paths['bvecs'], paths['bvals']]
         sifted_tracts = paths["sifted_tracts"]
         nthreads = config.NTHREADS
-        return Generate_tracts(brain=brain,
-                               fod=fod,
-                               tracts=tracts,
-                               ntracts=ntracts,
-                               lenscale=lenscale,
-                               stepscale=stepscale,
-                               angle=angle,
-                               mask=mask,
-                               segmentation=segmentation,
-                               bv=bv,
-                               sifted_tracts=sifted_tracts,
-                               nthreads=nthreads)
+        return GenerateTracts(brain=brain,
+                              fod=fod,
+                              tracts=tracts,
+                              ntracts=ntracts,
+                              lenscale=lenscale,
+                              stepscale=stepscale,
+                              angle=angle,
+                              mask=mask,
+                              segmentation=segmentation,
+                              bv=bv,
+                              sifted_tracts=sifted_tracts,
+                              nthreads=nthreads)
 
     @property
     def needed_files(self):

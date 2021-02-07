@@ -5,7 +5,7 @@ import numpy as np
 # TODO: change file name without killing it in git?
 
 
-class Sift_to_atlas(stage.Stage):
+class SiftToAtlas(stage.Stage):
     def __init__(self, *, atlas, atlas_for_connectome, temp, nthreads, tracts, fod, sifted_atlas_tracts, segmentation,
                  ntracts):
         self.atlas = atlas
@@ -32,15 +32,15 @@ class Sift_to_atlas(stage.Stage):
         sifted_atlas_tracts = paths["sifted_atlas_tracts"]
         segmentation = paths["5tt"]
         ntracts = config.NTRACTS
-        return Sift_to_atlas(atlas=atlas,
-                             atlas_for_connectome=atlas_for_connectome,
-                             temp=temp,
-                             nthreads=nthreads,
-                             tracts=tracts,
-                             fod=fod,
-                             sifted_atlas_tracts=sifted_atlas_tracts,
-                             segmentation=segmentation,
-                             ntracts=ntracts)
+        return SiftToAtlas(atlas=atlas,
+                           atlas_for_connectome=atlas_for_connectome,
+                           temp=temp,
+                           nthreads=nthreads,
+                           tracts=tracts,
+                           fod=fod,
+                           sifted_atlas_tracts=sifted_atlas_tracts,
+                           segmentation=segmentation,
+                           ntracts=ntracts)
 
     def parameters_for_comparing_past_runs(self):
         return ['MINVOL', 'NTRACTS', 'LINSCALE', 'STEPSCALE', 'ANGLE', 'ATLAS']

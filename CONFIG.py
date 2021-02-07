@@ -15,7 +15,7 @@ class CONFIG:
         self.ATLAS = None
         self.ATLAS_META = None
         self.ATLAS_TEMPLATE = None
-        self.ATLAS_FOR_CONNECTOME= None
+        self.ATLAS_FOR_CONNECTOME = None
         self.NTHREADS = 2
         self.DATAIN = rf'{self.DATA_PATH}/datain.txt'
         self.INDEX = rf'{self.DATA_PATH}/index.txt'
@@ -28,18 +28,18 @@ class CONFIG:
             json.dump(data, outfile)
 
     @staticmethod
+    def default_config():
+        config = CONFIG()
+        return config.check_empty_values_()
+
+    @staticmethod
     def from_json(json_path):
         config = CONFIG()
         with open(json_path) as json_file:
             json_data = json.load(json_file)
         for key, value in json_data.items():
             setattr(config, key, value)
-        return config.check_empty_values()
-
-    @staticmethod
-    def default_config():
-        config = CONFIG()
-        return config.check_empty_values()
+        return config.check_empty_values_()
 
     def set_value(self, name, val):
         raise NotImplementedError
@@ -48,9 +48,9 @@ class CONFIG:
         for argname, value in vars(parser).items():
             if not argname == 'config_path':
                 setattr(self, argname, value)
-        self.check_empty_values()
+        self.check_empty_values_()
 
-    def check_empty_values(self):
+    def check_empty_values_(self):
         if not self.MINVOL or not self.ATLAS:
             raise ValueError('must choose minimum brain volume (in voxels) and atlas path')
         if not self.ATLAS_META:
@@ -58,4 +58,4 @@ class CONFIG:
         if not self.ATLAS_TEMPLATE:
             self.ATLAS_TEMPLATE = "${FSLDIR}/data/standard/MNI152_T1_2mm"
         if not self.ATLAS_FOR_CONNECTOME:
-            self.ATLAS_FOR_CONNECTOME = self.ATLAS_META.replace('.txt', '._connectome.txt')
+            self.ATLAS_FOR_CONNECTOME = self.ATLAS_META

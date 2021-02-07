@@ -48,13 +48,13 @@ class ExternalCommand:
         """Raise an exception if input files are missing"""
         missing = self.find_missing_files(self.input_files)
         if missing:
-            raise Exception(f'Missing input files {missing}')
+            raise FileNotFoundError(f'Missing input files {missing}')
 
     def check_output_files_exist(self):
         """Raise an exception if output files are missing"""
         missing = self.find_missing_files(self.output_files)
         if missing:
-            raise Exception(f'Missing output files {missing}')
+            raise FileNotFoundError(f'Missing output files {missing}')
 
     def run_command(self, environment=None):
         """Runs the command, raises an exception on missing input/output fails or failed command."""

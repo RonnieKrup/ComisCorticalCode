@@ -1,4 +1,4 @@
-from ComisCorticalCode import Eddy, Registrations, Segmentation, Generate_tracts, Siftt_to_atlas, CONFIG, toolbox
+from ComisCorticalCode import Eddy, Registrations, Segmentation, GenerateTracts, SiftToAtlas, CONFIG, toolbox
 import sys
 import os
 
@@ -6,7 +6,7 @@ import os
 def generate_stages_to_run():
     stages = [Eddy.Eddy, Registrations.RegistrationT12diff, Registrations.RegistrationTemplate2t1,
               Registrations.RegistrationAtlas, Segmentation.Segmentation,
-              Generate_tracts.Generate_tracts, Siftt_to_atlas.Sift_to_atlas]
+              GenerateTracts.GenerateTracts, SiftToAtlas.SiftToAtlas]
     return stages
 
 
@@ -28,3 +28,7 @@ def test_run():
 if __name__ == '__main__':
     #run_for_sub(*sys.argv[1:])
     test_run()
+
+
+
+
