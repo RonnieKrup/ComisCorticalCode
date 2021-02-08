@@ -1,4 +1,4 @@
-from ComisCorticalCode import toolbox, CSV, stage
+from ComisCorticalCode import toolbox, stage
 import os
 
 
@@ -22,9 +22,9 @@ class RegistrationStage(stage.Stage):
         temp = paths["temp"]
         brain = paths.brain
         mprage2diff = paths["mprage2diff"]
-        atlas_template = config.ATLAS_TEMPLATE
+        atlas_template = config.atlas_template
         template2mprage = paths["template2mprage"]
-        atlas = config.ATLAS
+        atlas = config.atlas
         subject_atlas = paths["atlas"]
         return cls(
             mprage=mprage,

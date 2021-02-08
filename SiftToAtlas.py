@@ -1,4 +1,4 @@
-from ComisCorticalCode import CSV, toolbox, stage
+from ComisCorticalCode import toolbox, stage
 import os
 import nibabel as nb
 import numpy as np
@@ -24,14 +24,14 @@ class SiftToAtlas(stage.Stage):
     @staticmethod
     def create_from_dict(paths, config):
         atlas = paths['atlas']
-        atlas_for_connectome = config.ATLAS_FOR_CONNECTOME
+        atlas_for_connectome = config.atlas_for_connectome
         temp = paths['temp']
-        nthreads = config.NTHREADS
+        nthreads = config.nthreads
         tracts = paths["tracts"]
         fod = paths['fod']
         sifted_atlas_tracts = paths["sifted_atlas_tracts"]
         segmentation = paths["5tt"]
-        ntracts = config.NTRACTS
+        ntracts = config.ntracts
         return SiftToAtlas(atlas=atlas,
                            atlas_for_connectome=atlas_for_connectome,
                            temp=temp,

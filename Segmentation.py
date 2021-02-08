@@ -1,5 +1,5 @@
 import os
-from ComisCorticalCode import CONFIG, toolbox, CSV, stage
+from ComisCorticalCode import Config, toolbox, stage
 
 
 class SegmentationStage(stage.Stage):
@@ -21,7 +21,7 @@ class SegmentationStage(stage.Stage):
         mprage2diff = paths['mprage2diff']
         brain = paths['brain']
         temp = paths['temp']
-        nthreads = config.NTHREADS
+        nthreads = config.nthreads
         raw_dat = paths['raw_data']
         return cls(mprage, segmentation, mprage2diff, brain, temp, nthreads, raw_dat)
 

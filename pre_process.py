@@ -9,7 +9,7 @@
 ###########################################################
 
 # ~~ IMPORTS~~ #
-from ComisCorticalCode import CONFIG
+from ComisCorticalCode import Config
 from subprocess import call
 import os
 import nibabel as nb
@@ -29,7 +29,7 @@ def eddy(paths):
     cmd.append(get_command('fslroi', (f'{paths["raw_dat"]}/dif_PA.nii.gz', f'{paths["temp"]}/nodif_PA', 0, 1)))
     cmd.append(get_command('fslmerge', (paths["nodif"], f'{paths["raw_dat"]}/nodif_PA.nii.gz'),
                            t=f'{paths["temp"]}/AP_PA_b0.nii.gz'))
-    cmd.append(get_command('topup', imain=f'{paths["temp"]}/AP_PA_b0.nii.gz', datain=CONFIG.DATAIN,
+    cmd.append(get_command('topup', imain=f'{paths["temp"]}/AP_PA_b0.nii.gz', datain=Config.DATAIN,
                            config='b02b0.cnf', out=f'{paths["temp"]}/topup_AP_PA_b0',
                            iout=f'{paths["temp"]}/topup_AP_PA_b0_iout', fout=f'{paths["temp"]}/topup_AP_PA_b0_fout'))
     cmd.append(get_command('fslmaths', (f'{paths["temp"]}/topup_AP_PA_b0_iout',), Tmean=paths["nodif"]))
@@ -37,12 +37,12 @@ def eddy(paths):
     cmd.append(get_command("denoise", (f'{paths["raw_dat"]}/dif_AP.nii.gz', f'{paths["raw_dat"]}/dif_AP.nii.gz',
                                        'force'), mask=paths["brain_mask"]))
     cmd.append(get_command(f'eddy_openmp', ('data_is_shelled',), imain=f'{paths["raw_dat"]}/dif_AP.nii.gz',
-                           mask=paths["brain_mask"], index=CONFIG.INDEX, acqp=CONFIG.DATAIN,
+                           mask=paths["brain_mask"], index=Config.INDEX, acqp=Config.DATAIN,
                            bvecs=paths["bvecs"], bvals=paths["bvals"][1], fwhm=0,
                            topup=f'{paths["temp"]}/topup_AP_PA_b0', flm='quadratic', out=paths["data"]))
 
     environment = dict(os.environ)  # Copy the existing environment variables
-    environment['OMP_NUM_THREADS '] = CONFIG.NTHREADS
+    environment['OMP_NUM_THREADS '] = Config.NTHREADS
     if run_commands(cmd, environment):
         print("eddy complete")
         shutil.rmtree(paths["temp"])
@@ -59,7 +59,7 @@ def resample(paths):
     vol = np.sum(mask)
     cmd = []
     cmd.append(get_command('mrresize', (paths["data"], paths["data"].replace(".nii.gz", "_resampled.nii.gz"), "-force"),
-               nthreads=CONFIG.NTHREADS, scale=(CONFIG.MINVOL/vol)**(1/3)))
+                           nthreads=Config.NTHREADS, scale=(Config.MINVOL / vol) ** (1 / 3)))
     paths['data'] = paths["data"].replace(".nii.gz", "_resampled.nii.gz")
     cmd.append(get_command('fslroi', (paths["data"], paths["nodif"], 0, 1)))
     paths["brain"] = paths["brain"].replace(".nii.gz", "_resampled.nii.gz")
@@ -96,8 +96,8 @@ def register_t12diff(paths):
 
 def register_template2t1(paths):
     cmd = []
-    cmd.append(get_command("flirt", ref=CONFIG.ATLAS_TEMPLATE, In=paths["mprage"], omat=paths["mprage2template"]))
-    cmd.append(get_command("fnirt", In=paths["mprage"], aff=paths["mprage2template"], ref=CONFIG.ATLAS_TEMPLATE,
+    cmd.append(get_command("flirt", ref=Config.ATLAS_TEMPLATE, In=paths["mprage"], omat=paths["mprage2template"]))
+    cmd.append(get_command("fnirt", In=paths["mprage"], aff=paths["mprage2template"], ref=Config.ATLAS_TEMPLATE,
                            cout=paths["mprage2template"], config="T1_2_MNI152_2mm"))
     cmd.append(get_command('invwarp', ref=paths["mprage"], out=paths["template2mprage"], warp=paths["mprage2template"]))
     if run_commands(cmd):
@@ -111,14 +111,14 @@ def register_template2t1(paths):
 
 def register_atlas(paths):
     cmd = []
-    cmd.append(get_command("applywarp", ref=paths["mprage"], In=CONFIG.ATLAS, out=paths["atlas"],
+    cmd.append(get_command("applywarp", ref=paths["mprage"], In=Config.ATLAS, out=paths["atlas"],
                            warp=paths["template2mprage"], interp="nn"))
     cmd.append(get_command("flirt", ("applyxfm",), ref=paths["brain"], In=paths["atlas"], init=paths["mprage2diff"],
                            interp="nearestneighbour", out=paths["atlas"]))
-    cmd.append(get_command("labelconvert", (paths['atlas'], CONFIG.ATLAS_FOR_CONNECTOME,
-                                            CONFIG.ATLAS_FOR_CONNECTOME.replace('.txt', '_converted.txt'),
+    cmd.append(get_command("labelconvert", (paths['atlas'], Config.ATLAS_FOR_CONNECTOME,
+                                            Config.ATLAS_FOR_CONNECTOME.replace('.txt', '_converted.txt'),
                                             paths["atlas"].replace(".nii.gz", "_connectome.nii.gz"), "force"),
-                           nthreads=CONFIG.NTHREADS))
+                           nthreads=Config.NTHREADS))
     if run_commands(cmd):
         print("eddy complete")
         shutil.rmtree(paths["temp"])
@@ -154,14 +154,14 @@ def make_fod(paths):
     cmd = []
     cmd.append(get_command("dwi2response", ("dhollander", paths["data"], paths['res'], fr"{paths['temp']}/gm_res.txt",
                                             fr"{paths['temp']}/csf_res.txt", '-force'),
-                           mask=paths["brain_mask"], nthreads=CONFIG.NTHREADS,
+                           mask=paths["brain_mask"], nthreads=Config.NTHREADS,
                            fslgrad=f"{paths['bvecs']} {paths['bvals']}"))
 
     cmd.append(get_command("dwi2fod msmt_csd", (paths["data"], paths["res"], paths["fod"],
                                                 fr"{paths['temp']}/gm_res.txt", fr"{paths['temp']}/gm_fod.mif"
                                                 fr"{paths['temp']}/csf_res.txt", fr"{paths['temp']}/csf_fod.mif",
                                                 "-force"),
-                           fslgrad=f"{paths['bvecs']} {paths['bvals']}", nthreads=CONFIG.NTHREADS, mask=paths["brain_mask"]))
+                           fslgrad=f"{paths['bvecs']} {paths['bvals']}", nthreads=Config.NTHREADS, mask=paths["brain_mask"]))
     if run_commands(cmd):
         print("eddy complete")
         shutil.rmtree(paths["temp"])
@@ -176,12 +176,12 @@ def generate_tracts(paths):
     diff = nb.load(paths['brain'])
     pixdim = diff.header['pixdim'][1]
     cmd.append(get_command("tckgen", (paths["fod"], paths["tracts"], "-force"), algorithm="Tensor_Det",
-                           select=CONFIG.NTRACTS, step=pixdim * CONFIG.PIXSCALE, minlength=pixdim * CONFIG.MINSCALE,
-                           maxlength=pixdim * CONFIG.MAXSCALE, angle=CONFIG.ANGLE, seed_image=paths["brain_mask"],
+                           select=Config.NTRACTS, step=pixdim * Config.PIXSCALE, minlength=pixdim * Config.MINSCALE,
+                           maxlength=pixdim * Config.MAXSCALE, angle=Config.ANGLE, seed_image=paths["brain_mask"],
                            act=paths["5tt"], fslgrad=f"{paths['bvecs']} {paths['bvals']}"))
     cmd.append(get_command("tcksift", (paths["trats"], paths["fod"], paths["sifted_tracts"],
                                        "-force", "-fd_scale_gm"),
-                           act=paths["5tt"], nthreads=CONFIG.NTHREADS, term_number=CONFIG.NTRACTS*0.1))
+                           act=paths["5tt"], nthreads=Config.NTHREADS, term_number=Config.NTRACTS * 0.1))
     if run_commands(cmd):
         print("eddy complete")
         shutil.rmtree(paths["temp"])
@@ -193,22 +193,22 @@ def generate_tracts(paths):
 
 def sift_atlas(paths):
     cmd = []
-    self.commands.append(toolbox.get_command("labelconvert", (paths['atlas'], CONFIG.ATLAS_FOR_CONNECTOME,
-                                                              CONFIG.ATLAS_FOR_CONNECTOME.replace('.txt',
+    self.commands.append(toolbox.get_command("labelconvert", (paths['atlas'], Config.ATLAS_FOR_CONNECTOME,
+                                                              Config.ATLAS_FOR_CONNECTOME.replace('.txt',
                                                                                                   '_converted.txt'),
                                                               paths["atlas"].replace(".nii.gz", "_connectome.nii.gz"),
                                                               "force"),
-                                             nthreads=CONFIG.NTHREADS))
+                                             nthreads=Config.NTHREADS))
     cmd.append(get_command("tck2connectome", (paths["atlas"].replace(".nii.gz", "_connectome.nii.gz"),
                                               rf"paths['temp']/connectome", "-force"),
-                           nthreads=CONFIG.NTHREADS, assignment_radial_search=2, out_assignments=rf"paths['temp']/out"))
+                           nthreads=Config.NTHREADS, assignment_radial_search=2, out_assignments=rf"paths['temp']/out"))
     cmd.append(get_command("connectome2tck", (paths["tracts"], rf"paths['temp']/out", paths["atlas_tracts"],
                                               "-exclusive", "-keep_self", "-force"),
-                           nthreads=CONFIG.NTHREADS, nodes=",".join([str(i) for i in range(1, CONFIG.NODES+1)]),
+                           nthreads=Config.NTHREADS, nodes=",".join([str(i) for i in range(1, Config.NODES + 1)]),
                            files="single"))
     cmd.append(get_command("tcksift", (paths["atlas_tracts"], paths["fod"], paths["sifted_atlas_tracts"],
                                        "-force", "-fd_scale_gm"),
-                           act=paths["5tt"], nthreads=CONFIG.NTHREADS, term_number=CONFIG.NTRACTS*0.1))
+                           act=paths["5tt"], nthreads=Config.NTHREADS, term_number=Config.NTRACTS * 0.1))
 
     if run_commands(cmd):
         print("eddy complete")

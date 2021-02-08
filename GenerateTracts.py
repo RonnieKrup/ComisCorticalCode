@@ -1,4 +1,4 @@
-from ComisCorticalCode import CSV, toolbox, stage
+from ComisCorticalCode import toolbox, stage
 import nibabel as nb
 import os
 
@@ -24,15 +24,15 @@ class GenerateTracts(stage.Stage):
         brain = paths['brain']
         fod = paths["fod"]
         tracts = paths["tracts"]
-        ntracts = config.NTRACTS
-        lenscale = config.LENSCALE
-        stepscale = config.STEPSCALE
-        angle = config.ANGLE
+        ntracts = config.ntracts
+        lenscale = config.linescale
+        stepscale = config.stepscale
+        angle = config.angle
         mask = paths["brain_mask"]
         segmentation = paths["5tt"]
         bv = [paths['bvecs'], paths['bvals']]
         sifted_tracts = paths["sifted_tracts"]
-        nthreads = config.NTHREADS
+        nthreads = config.nthreads
         return GenerateTracts(brain=brain,
                               fod=fod,
                               tracts=tracts,

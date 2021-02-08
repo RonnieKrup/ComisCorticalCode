@@ -2,44 +2,44 @@ import argparse
 import time
 import os
 from glob import glob
-
-from ComisCorticalCode import CSV, toolbox
-from ComisCorticalCode.CONFIG import CONFIG
+from ComisCorticalCode import toolbox
+from ComisCorticalCode.Config import Config
 from subprocess import call
 from pathlib import Path
+import pandas as pd
+import shutil
 
 
-def main():
+def main(argv):
     parser = make_argument_parser()
-    config = get_vars_from_command_line(parser)
+    config = get_vars_from_command_line(parser, argv)
     run(config)
 
 
 def run(config):
     sub_dirs = get_sub_dirs(config)
-    out_path = config.OUT
-    run_name = CSV.get_run_name()
 
-    config.to_json(os.path.join(out_path, 'config_files', run_name))
-    CSV.update_new_runs(run_name)
+    config.to_json(os.path.join(config.out, 'config_files', config.run_name))
+    if config.run_list:
+        update_new_runs(config)
 
     for subject in sub_dirs:
-        while not has_room_for_task(out_path, config.NJOBS, run_name):
+        while not has_room_for_task(config.out, config.njobs, config.run_name):
             time.sleep(60)  # seconds
 
-        job = make_sh_files(subject, run_name, out_path)
-        call(f'qsub -N {job} {job}.sh')
+        job = make_sh_files(subject, config.run_name, config.out)
+        call(f'qsub -N {job} {os.path.join(config.out, "sh_files", job)}.sh')
 
-    while not finished_tasks(out_path, run_name=run_name, njobs=len(sub_dirs)):
+    while not finished_tasks(config.out, run_name=config.run_name, maxjobs=len(sub_dirs)):
         time.sleep(60)
-    CSV.update_old_runs()
-    creat_list_of_run_subjects(out_path)
-    toolbox.clear_dir(os.path.join(out_path, 'sh_files'))
+    update_old_runs(config)
+    creat_list_of_run_subjects(config.out, config.run_name)
+    toolbox.clear_dir(os.path.join(config.out, 'sh_files'))
 
 
 def make_sh_files(subject_path, run_name, out_path):
-    MY_DIR = os.path.dirname(os.path.abspath(__file__))
-    with open(os.path.join(MY_DIR, 'send_to_q.sh'), 'r') as f:
+    my_dir = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(my_dir, 'send_to_q.sh'), 'r') as f:
         template_file = f.read()
     sub = os.path.split(subject_path)[-1]
     template_file.replace('SCRIPT_TO_RUN', 'run_for_sub.py')
@@ -58,9 +58,9 @@ def has_room_for_task(out_path, njobs, run_name):
     return len(running_jobs) < njobs
 
 
-def finished_tasks(out_path, njobs, run_name):
+def finished_tasks(out_path, maxjobs, run_name):
     done_jobs = glob(os.path.join(out_path, 'jobs', run_name, '*.DONE'))
-    return len(done_jobs) >= njobs
+    return len(done_jobs) >= maxjobs
 
 
 def creat_list_of_run_subjects(out_path, run_name):
@@ -70,8 +70,23 @@ def creat_list_of_run_subjects(out_path, run_name):
         f.write('\n'.join(done_subs))
 
 
+def update_new_runs(config):
+    shutil.copyfile(config.run_list, config.run_list('.csv', '_new.csv'))
+    runs = pd.read_csv(config.run_list.replace('.csv', '_new.csv'))
+    vals = ['minvol', 'stepscale', 'lenscale', 'angle', 'ntracts', 'dataset', 'atlas']
+    row = pd.Series({v: getattr(config, v) for v in vals}, name=config.run_name)
+    runs.append(row)
+    runs.to_csv(config.run_list.replace('.csv', '_new.csv'))
+
+
+def update_old_runs(config):
+    # TODO: double check with barak
+    shutil.copyfile(config.run_list, config.run_list.replace('.csv', '_old.csv'))
+    shutil.copyfile(config.run_list.replace('.csv', '_new.csv'), config.run_list)
+
+
 def get_sub_dirs(my_vars):
-    return glob(os.path.join(my_vars['DATA_PATH'], '*'))
+    return glob(os.path.join(my_vars.data_path, '*'))
 
 
 def make_argument_parser():
@@ -92,6 +107,8 @@ def make_argument_parser():
     parser.add_argument("index", type=str, default=None)
     parser.add_argument("out", type=str, default=None)
     parser.add_argument("njobs", type=int, default=None)
+    parser.add_argument("run_name", type=str, default=None)
+    parser.add_argument("run_list", type=str, default=None)
 
     return parser
 
@@ -99,8 +116,8 @@ def make_argument_parser():
 def get_vars_from_command_line(parser, argv=None):
     parsed_args = parser.parse_args(argv)
     if parsed_args['config_path']:
-        config = CONFIG.from_json(parsed_args['config_path'])
+        config = Config.from_json(parsed_args['config_path'])
     else:
-        config = CONFIG.default_config()
+        config = Config.default_config()
     config.merge_with_parser(parsed_args)
     return config

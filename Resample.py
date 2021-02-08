@@ -1,4 +1,4 @@
-from ComisCorticalCode import CONFIG, toolbox, CSV, stage
+from ComisCorticalCode import Config, toolbox, stage
 import nibabel as nb
 import numpy as np
 import os
@@ -24,8 +24,8 @@ class Resample(stage.Stage):
         nodif = paths["nodif"]
         brain = paths['brain']
         mask = paths['mask']
-        nthreads = config.NTHREADS
-        minvol = config.MINVOL
+        nthreads = config.nthreads
+        minvol = config.minvol
         runs = config.RUNS
         return Resample(raw_dat, data, nodif, brain, mask, nthreads, minvol, runs)
 

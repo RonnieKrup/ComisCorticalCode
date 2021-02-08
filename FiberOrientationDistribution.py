@@ -20,7 +20,7 @@ class FiberOrientationDistribution(stage.Stage):
         response = paths['res']
         temp = paths['temp']
         mask = paths['mask']
-        nthreads = config.NTHREADS
+        nthreads = config.nthreads
         fod = paths['fod']
         bv = [paths['bvecs'], paths['bvals']]
         return FiberOrientationDistribution(data, response, temp, mask, nthreads, fod, bv)

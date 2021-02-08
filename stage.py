@@ -1,11 +1,10 @@
 import os
-
-from ComisCorticalCode import CSV
+import pandas as pd
 from ComisCorticalCode import toolbox
 
 
 class BaseStage:
-    def run(self):
+    def run_stage(self, run_path):
         raise NotImplementedError()
 
 
@@ -30,14 +29,24 @@ class Stage(BaseStage):
                 return True
         return False
 
-    def run(self):
+    def run_stage(self, run_path):
         if not self.needs_to_run():
             return
 
-        past_run = CSV.find_past_runs(self.parameters_for_comparing_past_runs)
+        past_run = self.find_past_runs_(run_path)
         if past_run:
             toolbox.make_link(past_run, self.needed_files)
             return
 
         for command in self.make_commands_for_stage():
-            command.run()
+            command.run_command()
+
+    def find_past_runs_(self, runs_path):
+        runs = pd.read_csv(runs_path, index_col='Name')
+        relevant_runs = runs
+        for param in self.parameters_for_comparing_past_runs():
+            relevant_runs = relevant_runs[relevant_runs[param] == getattr(self, param)]
+        if len(relevant_runs):
+            return relevant_runs.index[0]
+        else:
+            return None

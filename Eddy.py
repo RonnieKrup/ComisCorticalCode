@@ -27,7 +27,7 @@ class Eddy(stage.BaseStage):
         raw_dat = paths["raw_dat"]
         temp = paths["temp"]
         bv = [paths['bvecs'], paths['bvals']]
-        nthreads = config.NTHREADS
+        nthreads = config.nthreads
         index_datain = [paths["index"], paths["datain"]]
         return Eddy(raw_dat=raw_dat,
                     temp=temp,
@@ -35,7 +35,7 @@ class Eddy(stage.BaseStage):
                     nthreads=nthreads,
                     index_datain=index_datain)
 
-    def run(self):
+    def run_stage(self):
         if os.path.isfile(self.data):
             return
         commands = []
