@@ -13,13 +13,18 @@ def generate_stages_to_run(config):
 
 
 def run_for_sub(subject_path, run_name, out_path):
-    config = Config.Config.from_json(os.path.join(out_path, 'config_files', run_name))
+    config = Config.Config.from_json(os.path.join(out_path, 'config_files', f'{run_name}.json'))
     paths = toolbox.get_paths(subject_path, run_name)
     for stage in generate_stages_to_run(config):
+        if not os.path.isdir(paths['temp']):
+            os.mkdir(paths['temp'])
         s = stage.create_from_dict(paths, config)
         s.run_stage(config.run_list)
         toolbox.clear_dir(paths['temp'])
 
 
 if __name__ == '__main__':
+    if toolbox.DRY_RUN:
+        run_for_sub('/mnt/e/Ronniek/ComisCorticalCode/test_data/sub', 'test',
+                    '/mnt/e/Ronniek/ComisCorticalCode/test_data/out')
     run_for_sub(*sys.argv[1:])

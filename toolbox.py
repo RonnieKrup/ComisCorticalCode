@@ -4,7 +4,7 @@ import subprocess
 from glob import glob
 from pathlib import Path
 
-DRY_RUN = False
+DRY_RUN = True
 
 
 class ExternalCommand:
@@ -93,8 +93,8 @@ def make_link(past_run_name, files_to_link):
 
 def get_paths(base_dir, name):
     local_paths = {
-        'raw_dat': 'raw_data/data.nii.gz',
-        'temp': 'temp_{name}/',
+        'raw_dat': 'raw_data/',
+        'temp': f'temp_{name}/',
         'bvecs': 'raw_data/bvecs',
         'bvals': 'raw_data/bvals',
         'mprage': r'raw_data/mprage.nii.gz',

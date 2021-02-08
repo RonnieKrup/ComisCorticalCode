@@ -24,7 +24,7 @@ class Stage(BaseStage):
         raise NotImplementedError()
 
     def needs_to_run(self):
-        for f in self.needed_files:
+        for f in self.needed_files():
             if not os.path.isfile(f):
                 return True
         return False
@@ -32,11 +32,11 @@ class Stage(BaseStage):
     def run_stage(self, run_path):
         if not self.needs_to_run():
             return
-
-        past_run = self.find_past_runs_(run_path)
-        if past_run:
-            toolbox.make_link(past_run, self.needed_files)
-            return
+        if run_path:
+            past_run = self.find_past_runs_(run_path)
+            if past_run:
+                toolbox.make_link(past_run, self.needed_files)
+                return
 
         for command in self.make_commands_for_stage():
             command.run_command()

@@ -26,7 +26,7 @@ class Resample(stage.Stage):
         mask = paths['mask']
         nthreads = config.nthreads
         minvol = config.minvol
-        runs = config.RUNS
+        runs = config.run_list
         return Resample(raw_dat, data, nodif, brain, mask, nthreads, minvol, runs)
 
     def needed_files(self):
