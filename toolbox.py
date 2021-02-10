@@ -98,8 +98,8 @@ def get_paths(base_dir, name):
         'bvecs': 'raw_data/bvecs',
         'bvals': 'raw_data/bvals',
         'mprage': r'raw_data/mprage.nii.gz',
-        "mprage2diff": rf'affine/t12dif/{name}.mat',
-        "template2mprage": rf'affine/template2t1/{name}.mat',
+        "mprage2diff": rf'reg_t12dif/{name}.mat',
+        "template2mprage": rf'reg_template2t1/{name}.nii.gz',
         "5tt": fr'5tt/{name}.mif',
         'data': rf'data/{name}.nii.gz',
         'nodif': rf'nodif/{name}.nii.gz',
@@ -113,12 +113,14 @@ def get_paths(base_dir, name):
         'tracts_atlas': f'temp_{name}/atlas_tracts_unsifted.tck',
         'sifted_atlas_tracts': f'atlas_tracts/{name}.tck'
     }
-
-    return {
+    global_paths = {
         name: os.path.join(base_dir, value)
         for name, value in local_paths.items()
     }
-
+    for path in list(global_paths.values()):
+        if not os.path.isdir(os.path.split(path)[0]):
+            os.mkdir(os.path.split(path)[0])
+    return global_paths
 
 
 

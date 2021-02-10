@@ -3,7 +3,8 @@ import os
 
 
 class RegistrationStage(stage.Stage):
-    def __init__(self, *, mprage, temp, brain, mprage2diff, atlas_template, template2mprage, atlas, subject_atlas):
+    def __init__(self, *, mprage, temp, brain, mprage2diff, atlas_template, template2mprage, sub_atlas, atlas,
+                 subject_atlas):
         self.mprage = mprage
         self.mprage_brain = self.mprage.replace('.nii.gz', 'brain.nii.gz')
         self.dif2mprage = os.path.join(temp, 'dif2mprage.mat')
@@ -12,6 +13,7 @@ class RegistrationStage(stage.Stage):
         self.atlas_template = atlas_template
         self.mprage2template = os.path.join(temp, 'mprage2template')
         self.template2mprage = template2mprage
+        self.sub_atlas = sub_atlas
         self.atlas = atlas
         self.subject_atlas = subject_atlas
 
@@ -20,12 +22,13 @@ class RegistrationStage(stage.Stage):
         # cls is the class to create
         mprage = paths['mprage']
         temp = paths["temp"]
-        brain = paths.brain
+        brain = paths['brain']
         mprage2diff = paths["mprage2diff"]
         atlas_template = config.atlas_template
         template2mprage = paths["template2mprage"]
-        atlas = config.atlas
+        sub_atlas = paths['atlas']
         subject_atlas = paths["atlas"]
+        atlas = config.atlas
         return cls(
             mprage=mprage,
             temp=temp,
@@ -33,8 +36,9 @@ class RegistrationStage(stage.Stage):
             mprage2diff=mprage2diff,
             atlas_template=atlas_template,
             template2mprage=template2mprage,
-            atlas=atlas,
-            subject_atlas=subject_atlas)
+            sub_atlas=sub_atlas,
+            subject_atlas=subject_atlas,
+            atlas=atlas)
 
 
 class RegistrationT12diff(RegistrationStage):
@@ -52,16 +56,16 @@ class RegistrationT12diff(RegistrationStage):
 
     def make_commands_for_stage(self):
         commands = [
-                    toolbox.ExternalCommand.get_command('bet', self.mprage, self.mprage_brain, '-m', f=0.2, g=0.2,
+                    toolbox.ExternalCommand.get_command('bet', self.mprage, self.mprage_brain, '-m', '-f 0.2', '-g 0.2',
                                                         input_files=(self.mprage,),
                                                         output_files=(self.mprage_brain,)),
-                    toolbox.ExternalCommand.get_command('flirt', In=self.brain, ref=self.mprage_brain,
-                                                        omat=self.dif2mprage, bins=256, cost="normmi",
-                                                        searchrx="-90 90", searchry="-90 90",
-                                                        searchrz="-90 90", dof=12, output_files=(self.dif2mprage,),
+                    toolbox.ExternalCommand.get_command('flirt', f'-in {self.brain}', f'-ref {self.mprage_brain}',
+                                                        f'-omat {self.dif2mprage}', '-bins 256', '-cost normmi',
+                                                        '-searchrx -90 90', '-searchry -90 90', '-searchrz -90 90',
+                                                        '-dof 12', output_files=(self.dif2mprage,),
                                                         input_files=(self.brain, self.mprage_brain)),
                     toolbox.ExternalCommand.get_command("convert_xfm", self.dif2mprage, "-inverse",
-                                                        omat=self.mprage2diff, input_files=(self.dif2mprage,),
+                                                        f'-omat {self.mprage2diff}', input_files=(self.dif2mprage,),
                                                         output_files=(self.mprage2diff,))
                     ]
         return commands
@@ -83,8 +87,8 @@ class RegistrationTemplate2t1(RegistrationStage):
     def make_commands_for_stage(self):
         commands = [
 
-                    toolbox.ExternalCommand.get_command("flirt", ref=self.atlas_template, In=self.mprage,
-                                                        omat=self.mprage2template, output_files=(self.mprage2template,),
+                    toolbox.ExternalCommand.get_command("flirt", f'-ref {self.atlas_template}', f'-in {self.mprage}',
+                                                        f'-omat {self.mprage2template}', output_files=(self.mprage2template,),
                                                         input_files=(self.atlas_template, self.mprage)),
                     toolbox.ExternalCommand.get_command("fnirt", In=self.mprage, aff=self.mprage2template,
                                                         ref=self.atlas_template, cout=self.mprage2template,
@@ -106,21 +110,21 @@ class RegistrationAtlas(RegistrationStage):
         return RegistrationStage.create_from_dict_(RegistrationAtlas, paths, config)
 
     def needed_files(self):
-        return self.atlas,
+        return self.sub_atlas,
 
     def parameters_for_comparing_past_runs(self):
         return self.PARAMETERS
 
     def make_commands_for_stage(self):
         commands = [
-                    toolbox.ExternalCommand.get_command("applywarp", ref=self.mprage, In=self.atlas, out=self.atlas,
+                    toolbox.ExternalCommand.get_command("applywarp", ref=self.mprage, In=self.atlas, out=self.sub_atlas,
                                                         warp=self.template2mprage, interp="nn",
                                                         input_files=(self.mprage, self.atlas, self.template2mprage),
-                                                        output_files=(self.atlas,)),
-                    toolbox.ExternalCommand.get_command("flirt", "applyxfm", ref=self.brain, In=self.atlas,
-                                                        init=self.mprage2diff, interp="nearestneighbour",
-                                                        out=self.atlas, input_files=(self.atlas, self.mprage2diff,
-                                                                                     self.brain, self.mprage2diff),
-                                                        output_files=(self.atlas,))
+                                                        output_files=(self.sub_atlas,)),
+                    toolbox.ExternalCommand.get_command("flirt", f"-applyxfm", f'-ref{self.brain}',
+                                                        f'-in {self.sub_atlas}', f'-init {self.mprage2diff}',
+                                                        f'-interp nearestneighbour', f'-out {self.sub_atlas}',
+                                                        input_files=(self.sub_atlas, self.mprage2diff, self.brain,
+                                                                     self.mprage2diff), output_files=(self.sub_atlas,))
                     ]
         return commands

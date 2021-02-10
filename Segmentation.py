@@ -3,7 +3,7 @@ from ComisCorticalCode import Config, toolbox, stage
 
 
 class SegmentationStage(stage.Stage):
-    def __init__(self, mprage, segmentation, mprage2diff, brain, temp, nthreads, raw_dat):
+    def __init__(self, *, mprage, segmentation, mprage2diff, brain, temp, nthreads, raw_dat):
         self.env = dict(os.environ)  # Copy the existing environment variables
         self.env['SGE_ROOT'] = ''
         self.mprage_brain = mprage.replace('.nii.gz', 'brain.nii.gz')
@@ -22,13 +22,15 @@ class SegmentationStage(stage.Stage):
         brain = paths['brain']
         temp = paths['temp']
         nthreads = config.nthreads
-        raw_dat = paths['raw_data']
-        return cls(mprage, segmentation, mprage2diff, brain, temp, nthreads, raw_dat)
+        raw_dat = paths['raw_dat']
+        return cls(mprage=mprage,
+                   segmentation=segmentation, mprage2diff=mprage2diff,
+                   brain=brain, temp=temp, nthreads=nthreads, raw_dat=raw_dat)
 
 
 class Segmentation(SegmentationStage):
     def needed_files(self):
-        return self.segmentation_t1
+        return self.segmentation_t1,
 
     def parameters_for_comparing_past_runs(self):
         return []
@@ -37,10 +39,9 @@ class Segmentation(SegmentationStage):
     def create_from_dict(paths, config):
         return SegmentationStage.create_from_dict_(Segmentation, paths, config)
 
-    def make_commands(self):
-        program_path = '/state/partition1/home/ronniek/mrtrix3/bin/5ttgen'
+    def make_commands_for_stage(self):
         commands = [
-            toolbox.ExternalCommand.get_command(program_path, 'fsl', self.mprage_brain, self.segmentation_t1,
+            toolbox.ExternalCommand.get_command('5ttgen', 'fsl', self.mprage_brain, self.segmentation_t1,
                                                 '-premasked', '-nocrop', '-f', input_files=(self.mprage_brain,),
                                                 output_files=(self.segmentation_t1,))
         ]
@@ -49,7 +50,7 @@ class Segmentation(SegmentationStage):
 
 class SegmentRegistration(SegmentationStage):
     def needed_files(self):
-        return self.segmentation
+        return self.segmentation,
 
     def parameters_for_comparing_past_runs(self):
         return ['MINVOL']
@@ -66,8 +67,8 @@ class SegmentRegistration(SegmentationStage):
                                                         input_files=(self.mprage2diff, self.mprage_brain, self.brain),
                                                         output_files=(self.sgmentation_affine,)),
                     toolbox.ExternalCommand.get_command("mrtransform", self.segmentation_t1, self.segmentation,
-                                                        "-force", nthreads=self.nthreads,
-                                                        linear=self.sgmentation_affine,
+                                                        "-force", f'-nthreads {self.nthreads}',
+                                                        f'-linear {self.sgmentation_affine}',
                                                         input_files=(self.segmentation_t1, self.sgmentation_affine),
                                                         output_files=(self.segmentation,))
                    ]

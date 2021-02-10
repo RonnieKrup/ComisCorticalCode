@@ -21,7 +21,7 @@ class Stage(BaseStage):
 
     def make_commands_for_stage(self):
         """If needed to generate the stage output, these commands need to run."""
-        raise NotImplementedError()
+        raise NotImplementedError('Not yet implemented in %s' % type(self))
 
     def needs_to_run(self):
         for f in self.needed_files():

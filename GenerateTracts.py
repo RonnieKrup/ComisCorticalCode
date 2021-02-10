@@ -28,7 +28,7 @@ class GenerateTracts(stage.Stage):
         lenscale = config.linescale
         stepscale = config.stepscale
         angle = config.angle
-        mask = paths["brain_mask"]
+        mask = paths["mask"]
         segmentation = paths["5tt"]
         bv = [paths['bvecs'], paths['bvals']]
         sifted_tracts = paths["sifted_tracts"]
@@ -46,12 +46,12 @@ class GenerateTracts(stage.Stage):
                               sifted_tracts=sifted_tracts,
                               nthreads=nthreads)
 
-    @property
+    # @property
     def needed_files(self):
         """The files that are required to exist for this stage to finish."""
         return self.tracts, self.sifted_tracts
 
-    @property
+    # @property
     def parameters_for_comparing_past_runs(self):
         """If these parameters are the same in a previous run, we can re-use the results."""
         return 'MINVOL', 'NTRACTS', 'LINSCALE', 'STEPSCALE', 'ANGLE'
@@ -62,17 +62,18 @@ class GenerateTracts(stage.Stage):
         pixdim = diff.header['pixdim'][1]
         commands = [
                     toolbox.ExternalCommand.get_command("tckgen", self.fod, self.tracts, "-force",
-                                                        algorithm="SD_STREAM", select=self.ntracts,
-                                                        step=pixdim * self.stepscale,
-                                                        minlength=pixdim * self.lenscale[0],
-                                                        maxlength=pixdim * self.lenscale[0], angle=self.angle,
-                                                        seed_image=self.mask, act=self.segmentation,
-                                                        fslgrad=" ".join(self.bv), output_files=(self.tracts,),
+                                                        f'-algorithm SD_STREAM', f'-select {self.ntracts}',
+                                                        f'-step {pixdim * self.stepscale}',
+                                                        f'-minlength {pixdim * self.lenscale[0]}',
+                                                        f'-maxlength {pixdim * self.lenscale[1]}',
+                                                        f'-angle {self.angle}', f'-seed_image {self.mask}',
+                                                        f'-act {self.segmentation}', f'-fslgrad {" ".join(self.bv)}',
+                                                        output_files=(self.tracts,),
                                                         input_files=(self.fod, self.mask, self.segmentation)),
 
                     toolbox.ExternalCommand.get_command("tcksift", self.tracts, self.fod, self.sifted_tracts, "-force",
                                                         "-fd_scale_gm", act=self.segmentation, nthreads=self.nthreads,
-                                                        term_number=self.ntracts*0.1,
+                                                        term_number=self.ntracts*0.01,
                                                         input_files=(self.tracts, self.fod, self.segmentation),
                                                         output_files=(self.sifted_tracts,))
                     ]

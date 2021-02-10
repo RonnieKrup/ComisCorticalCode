@@ -40,12 +40,13 @@ class Resample(stage.Stage):
         vol = np.sum(mask)
 
         commands = [
-                    toolbox.ExternalCommand.get_command('mrresize', self.raw_data, self.data, "-force",
-                                                        nthreads=self.nthreads, scale=(self.minvol / vol) ** (1 / 3),
+                    toolbox.ExternalCommand.get_command('mrgrid',  self.raw_data, 'regrid', self.data, "-force",
+                                                        f'-nthreads {self.nthreads}',
+                                                        f'-scale {(self.minvol / vol) ** (1 / 3)}',
                                                         input_files=(self.raw_data,), output_files=(self.data,)),
                     toolbox.ExternalCommand.get_command('fslroi', self.data, self.nodif, 0, 1, input_files=(self.data,),
                                                         output_files=(self.nodif,)),
-                    toolbox.ExternalCommand.get_command('bet', self.nodif, self.brain, '-m', f=0.2, g=0.2,
+                    toolbox.ExternalCommand.get_command('bet', self.nodif, self.brain, '-m', '-f 0.2', '-g 0.2',
                                                         input_files=(self.nodif,), output_files=(self.brain, self.mask))
                    ]
         return commands

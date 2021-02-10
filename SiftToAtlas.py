@@ -51,7 +51,7 @@ class SiftToAtlas(stage.Stage):
     def make_commands_for_stage(self):
         commands = [
                     toolbox.ExternalCommand.get_command("labelconvert", self.atlas, self.atlas_for_connectome,
-                                                        self.atlas_for_connectome('.txt', '_converted.txt'),
+                                                        self.atlas_for_connectome.replace('.txt', '_converted.txt'),
                                                         self.connectome_atlas, "force", nthreads=self.nthreads,
                                                         input_files=(self.atlas, self.atlas_for_connectome),
                                                         output_files=(self.atlas_for_connectome('.txt',
