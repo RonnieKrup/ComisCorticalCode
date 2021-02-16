@@ -8,6 +8,7 @@ from subprocess import call
 from pathlib import Path
 import pandas as pd
 import shutil
+import sys
 
 
 def main(argv):
@@ -47,6 +48,12 @@ def make_sh_files(subject_path, run_name, out_path):
     template_file.replace('RUN_NAME', run_name)
     template_file.replace('JOB_NAME', sub)
     template_file.replace('OUT_PATH', out_path)
+    if sys.prefix == sys.base_prefix:
+        venv = ''
+    else:
+        venv = rf'source {sys.prefix}/bin/activate'
+    template_file.replace('VENV_ACTIVATE', venv)
+
 
     with open(os.path.join(out_path, 'sh_files', f'{sub}.sh')) as f:
         f.write(template_file)
@@ -109,6 +116,7 @@ def make_argument_parser():
     parser.add_argument("njobs", type=int, default=None)
     parser.add_argument("run_name", type=str, default=None)
     parser.add_argument("run_list", type=str, default=None)
+    parser.add_argument("additional_paths", type=list, default=None)
 
     return parser
 

@@ -25,6 +25,7 @@ class Config:
         self.njobs = 50
         self.run_name = None
         self.run_list = None
+        self.additional_paths = []
 
     def to_json(self, json_path):
         data = {key: val for key, val in vars(self).items() if not callable(val)}
@@ -72,7 +73,6 @@ class Config:
             self.atlas_template = "${FSLDIR}/data/standard/MNI152_T1_2mm"
             print('no atlas template specified. used MNI 2mm')
         if not self.atlas_for_connectome:
-            self.atlas_for_connectome = self.atlas_meta
             print('no atlas for connectome specified. used same atlas')
         if not self. run_name:
             if self.run_list:

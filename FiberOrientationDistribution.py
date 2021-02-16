@@ -7,9 +7,9 @@ class FiberOrientationDistribution(stage.Stage):
         self.commands = []
         self.data = data
         self.response = response
-        self.responses = [os.path.join(temp, "gm_res.txt"), os.path.join(temp, "csf_res.mif")]
+        self.responses = [os.path.join(temp, "gm_res.txt"), os.path.join(temp, "csf_res.txt")]
         self.fod = fod
-        self.fods = [os.path.join(temp, "gm_fod.txt"), os.path.join(temp, "csf_fod.mif")]
+        self.fods = [os.path.join(temp, "gm_fod.mif"), os.path.join(temp, "csf_fod.mif")]
         self.mask = mask
         self.nthreads = nthreads
         self.bv = bv
@@ -43,8 +43,8 @@ class FiberOrientationDistribution(stage.Stage):
                     toolbox.ExternalCommand.get_command("dwi2fod msmt_csd", self.data, self.response, self.fod,
                                                         " ".join(sum(zip(self.responses, self.fods), ())), "-force",
                                                         f'-fslgrad {" ".join(self.bv)}', f'-nthreads {self.nthreads}',
-                                                        f'-mask {self.mask}', input_files=(self.data, self.response,
-                                                                                     self.bv[0], self.bv[1], self.mask),
-                                                        output_files=self.fod)
+                                                        f'-mask {self.mask}',
+                                                        input_files=(self.data, self.response,  self.bv[0], self.bv[1],
+                                                                     self.mask), output_files=self.fod,)
                    ]
         return commands

@@ -10,7 +10,10 @@ class SiftToAtlas(stage.Stage):
                  ntracts):
         self.atlas = atlas
         self.atlas_for_connectome = atlas_for_connectome
-        self.connectome_atlas = os.path.join(temp, 'conncetome_atlas.nii.gz')
+        if self.atlas_for_connectome:
+            self.connectome_atlas = os.path.join(temp, 'conncetome_atlas.nii.gz')
+        else:
+            self.connectome_atlas = self.atlas
         self.temp = temp
         self.nthreads = nthreads
         self.connectome_out = os.path.join(self.temp, 'out')
@@ -46,37 +49,41 @@ class SiftToAtlas(stage.Stage):
         return ['MINVOL', 'NTRACTS', 'LINSCALE', 'STEPSCALE', 'ANGLE', 'ATLAS']
 
     def needed_files(self):
-        return self.atlas_tracts,
+        return self.sifted_atlas_tracts,
 
     def make_commands_for_stage(self):
-        commands = [
-                    toolbox.ExternalCommand.get_command("labelconvert", self.atlas, self.atlas_for_connectome,
-                                                        self.atlas_for_connectome.replace('.txt', '_converted.txt'),
-                                                        self.connectome_atlas, "force", nthreads=self.nthreads,
-                                                        input_files=(self.atlas, self.atlas_for_connectome),
-                                                        output_files=(self.atlas_for_connectome('.txt',
-                                                                                                '_converted.txt'),
-                                                        self.connectome_atlas)),
-                    toolbox.ExternalCommand.get_command("tck2connectome", self.connectome_atlas,
-                                                        os.path.join(self.temp, 'connectome'), "-force",
-                                                        nthreads=self.nthreads, assignment_radial_search=2,
-                                                        out_assignments=self.connectome_out,
-                                                        input_files=(self.connectome_atlas,),
-                                                        output_files=(self.connectome_out,)),
-                    toolbox.ExternalCommand.get_command("connectome2tck", self.tracts, self.connectome_out,
-                                                        self.atlas_tracts, "-exclusive", "-keep_self", "-force",
-                                                        nthreads=self.nthreads, nodes=self.list_of_nodes(),
-                                                        files="single", input_files=(self.tracts, self.connectome_out),
-                                                        output_files=(self.atlas_tracts,)),
-                    toolbox.ExternalCommand.get_command("tcksift", self.atlas_tracts, self.fod,
-                                                        self.sifted_atlas_tracts, "-force", "-fd_scale_gm",
-                                                        act=self.segmentation, nthreads=self.nthreads,
-                                                        term_number=self.ntracts * 0.1,
-                                                        input_files=(self.atlas_tracts, self.fod, self.segmentation),
-                                                        output_files=(self.sifted_atlas_tracts,))
-                    ]
+        commands = []
+        if self.atlas_for_connectome:
+            commands = [toolbox.ExternalCommand.get_command("labelconvert", self.atlas, self.atlas_for_connectome,
+                                                            self.atlas_for_connectome.replace('.txt', '_converted.txt'),
+                                                            self.connectome_atlas, "-force",
+                                                            f'-nthreads {self.nthreads}',
+                                                            input_files=(self.atlas, self.atlas_for_connectome,
+                                                                         self.atlas_for_connectome.replace('.txt',
+                                                                                                   '_converted.txt'),),
+                                                            output_files=(self.connectome_atlas,)),
+            toolbox.ExternalCommand.get_command("tck2connectome", self.tracts, self.connectome_atlas,
+                                                os.path.join(self.temp, 'connectome'), "-force",
+                                                f'-nthreads {self.nthreads}', f'-assignment_radial_search 2',
+                                                f'-out_assignments {self.connectome_out}',
+                                                input_files=(self.connectome_atlas,),
+                                                output_files=(self.connectome_out,)),
+            toolbox.ExternalCommand.get_command("connectome2tck", self.tracts, self.connectome_out, self.atlas_tracts,
+                                                "-exclusive", "-keep_self", "-force", f'-nthreads {self.nthreads}',
+                                                f'-nodes {self.list_of_nodes}', f'-files single',
+                                                input_files=(self.tracts, self.connectome_out),
+                                                output_files=(self.atlas_tracts,)),
+            toolbox.ExternalCommand.get_command("tcksift", self.atlas_tracts, self.fod, self.sifted_atlas_tracts,
+                                                "-force", "-fd_scale_gm", f'-act {self.segmentation}',
+                                                f'-nthreads {self.nthreads}',
+                                                f'-term_number {int(self.ntracts * 0.01)}',
+                                                input_files=(self.atlas_tracts, self.fod,
+                                                             self.segmentation),
+                                                output_files=(self.sifted_atlas_tracts,))
+            ]
         return commands
 
+    @property
     def list_of_nodes(self):
         parc = nb.load(self.atlas).get_data()
         return ",".join([str(i) for i in range(1, len(np.unique(parc)))])

@@ -72,8 +72,9 @@ class GenerateTracts(stage.Stage):
                                                         input_files=(self.fod, self.mask, self.segmentation)),
 
                     toolbox.ExternalCommand.get_command("tcksift", self.tracts, self.fod, self.sifted_tracts, "-force",
-                                                        "-fd_scale_gm", act=self.segmentation, nthreads=self.nthreads,
-                                                        term_number=self.ntracts*0.01,
+                                                        "-fd_scale_gm", f'-act {self.segmentation}',
+                                                        f'-nthreads {self.nthreads}',
+                                                        f'-term_number {int(self.ntracts * 0.01)}',
                                                         input_files=(self.tracts, self.fod, self.segmentation),
                                                         output_files=(self.sifted_tracts,))
                     ]

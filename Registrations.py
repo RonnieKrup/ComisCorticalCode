@@ -121,7 +121,7 @@ class RegistrationAtlas(RegistrationStage):
                                                         warp=self.template2mprage, interp="nn",
                                                         input_files=(self.mprage, self.atlas, self.template2mprage),
                                                         output_files=(self.sub_atlas,)),
-                    toolbox.ExternalCommand.get_command("flirt", f"-applyxfm", f'-ref{self.brain}',
+                    toolbox.ExternalCommand.get_command("flirt", f"-applyxfm", f'-ref {self.brain}',
                                                         f'-in {self.sub_atlas}', f'-init {self.mprage2diff}',
                                                         f'-interp nearestneighbour', f'-out {self.sub_atlas}',
                                                         input_files=(self.sub_atlas, self.mprage2diff, self.brain,

@@ -4,7 +4,7 @@ import subprocess
 from glob import glob
 from pathlib import Path
 
-DRY_RUN = True
+DRY_RUN = False
 
 
 class ExternalCommand:
