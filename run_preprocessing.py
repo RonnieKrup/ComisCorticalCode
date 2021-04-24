@@ -13,32 +13,52 @@ import sys
 from multiprocessing import Pool
 
 
+class Runner:
+    def run_all_subjects(self, config, sub_dirs, out):
+        raise NotImplementedError()
+
+
+class QsubRunner(Runner):
+    def run_all_subjects(self, config, sub_dirs, out):
+        sh_files = make_multiple_sh_files(sub_dirs, config.run_name, config.out)
+        run_all_batch_tasks(sh_files, config)
+        toolbox.clear_dir(os.path.join(config.out, 'sh_files'))
+
+
+class LocalRunnerWithShellScripts(Runner):
+    def run_all_subjects(self, config, sub_dirs, out):
+        sh_files = make_multiple_sh_files(sub_dirs, config.run_name, config.out)
+        run_all_tasks(sh_files, config)
+        toolbox.clear_dir(os.path.join(config.out, 'sh_files'))
+
+
+def run_with_config_and_runner(config, runner: Runner):
+    sub_dirs = get_sub_dirs(config)
+    make_dirs(config)
+    config.to_json(os.path.join(config.out, 'config_files', config.run_name + ".json"))
+    if config.run_list:
+        create_new_runs_file(config)
+        update_current_runs_to_new(config)
+    runner.run_all_subjects(config, sub_dirs, config.out)
+    creat_list_of_run_subjects(config.out, config.run_name)
+
+
 def run(argv):
     parser = make_argument_parser()
     config = get_vars_from_command_line(parser, argv)
-    sub_dirs = get_sub_dirs(config)
-    make_dirs(config)
-    sh_files = make_multiple_sh_files(sub_dirs, config.run_name, config.out)
-    config.to_json(os.path.join(config.out, 'config_files', config.run_name))
-    if config.run_list:
-        update_new_runs(config)
-    if check_if_batch():
-        run_all_batch_tasks(sh_files, config)
+    if check_if_qsub_available():
+        run_with_config_and_runner(config, QsubRunner())
     else:
-        run_all_tasks(sh_files, config)
-    update_old_runs(config)
-    creat_list_of_run_subjects(config.out, config.run_name)
-    toolbox.clear_dir(os.path.join(config.out, 'sh_files'))
+        run_with_config_and_runner(config, LocalRunnerWithShellScripts())
 
 
 def make_dirs(config):
     out_dirs = ['config_files', 'jobs', 'sh_files', 'subs']
     for d in out_dirs:
-        if not os.path.isdir(os.path.join(config.out, d)):
-            os.mkdir(os.path.join(config.out, d))
+        os.makedirs(os.path.join(config.out, d), exist_ok=True)
 
 
-def check_if_batch():
+def check_if_qsub_available():
     return which('qsub') is not None
 
 # TODO: 2. Run the sh file for a new candidate and make sure it works for that single subject
@@ -68,8 +88,8 @@ def run_all_tasks(sh_files, config):
         pool.map(run_single_task, sh_files)
 
 
-def make_multiple_sh_files(subjects, run_name, out): # tested
-    return [make_sh_file(sub, run_name, out) for sub in subjects]
+def make_multiple_sh_files(sub_dirs, run_name, out): # tested
+    return [make_sh_file(sub_dir, run_name, out) for sub_dir in sub_dirs]
 
 
 def make_sh_file(subject_path, run_name, out_path): # tested
@@ -113,20 +133,20 @@ def creat_list_of_run_subjects(out_path, run_name): # tested
         f.write('\n'.join(done_subs))
 
 
-def update_new_runs(config): # tested
-    shutil.copyfile(config.run_list, config.run_list.replace('.csv', '_new.csv'))
-    runs = pd.read_csv(config.run_list.replace('.csv', '_new.csv'))
+def create_new_runs_file(config): # tested
+    existing_file_name = config.run_list
+    new_file_name = config.run_list.replace('.csv', '_new.csv')
+    runs = pd.read_csv(existing_file_name)
     runs = runs.set_index('run_name')
     vals = ['run_name', 'minvol', 'stepscale', 'lenscale', 'angle', 'ntracts', 'dataset_name', 'atlas']
     row = pd.Series({v: getattr(config, v) for v in vals}, name=config.run_name)
     runs = runs.append(row)
-    runs.to_csv(config.run_list.replace('.csv', '_new.csv'))
+    runs.to_csv(new_file_name)
 
 
-def update_old_runs(config): # tested
-    # TODO: double check with barak
+def update_current_runs_to_new(config): # tested
     shutil.copyfile(config.run_list, config.run_list.replace('.csv', '_old.csv'))
-    shutil.copyfile(config.run_list.replace('.csv', '_new.csv'), config.run_list)
+    shutil.move(config.run_list.replace('.csv', '_new.csv'), config.run_list)
 
 
 def get_sub_dirs(my_vars):

@@ -85,5 +85,4 @@ class Config:
                 print('no run name was specified. run named "test"')
         out_dirs = ['config_files', 'sh_files', self.run_name]
         for d in out_dirs:
-            if not os.path.isdir(os.path.join(self.out, d)):
-                os.mkdir(os.path.join(self.out, d))
+            os.makedirs(os.path.join(self.out, d), exist_ok=True)

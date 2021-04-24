@@ -9,7 +9,6 @@ class BaseStage:
 
 
 class Stage(BaseStage):
-    @property
     def needed_files(self):
         """The files that are required to exist for this stage to finish."""
         raise NotImplementedError()
