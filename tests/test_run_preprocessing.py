@@ -14,24 +14,27 @@ class LocalRunnerInProcess(run_preprocessing.Runner):
             run_for_sub.run_for_sub(sub_dir, config.run_name, out)
 
 
-class TestStage(stage.BaseStage):
+class TestStage(stage.Stage):
     num_runs = 0
 
+    def __init__(self, paths_for_subject, config):
+        self.stepscale = config.stepscale
+        self.my_result_file = paths_for_subject['brain']
+
     @staticmethod
-    def create_from_dict(paths, config):
-        return  TestStage()
+    def create_from_dict(paths_for_subject, config):
+        return TestStage(paths_for_subject, config)
 
-    @property
     def needed_files(self):
-        return ["hello"]
+        return [self.my_result_file]
 
-    @property
     def parameters_for_comparing_past_runs(self):
         return ["stepscale"]
 
-    def run_stage(self, run_path):
+    def run_commands(self):
         TestStage.num_runs += 1
-
+        with open(self.my_result_file, 'w'):
+            pass
 
 def our_generate_stages(config):
     return [TestStage]
@@ -47,7 +50,7 @@ class TestRunPreprocessing(TestCase):
         self.test_config.out = os.path.join(self.tmp_dir, 'out')
         self.test_config.atlas = os.path.join(self.tmp_dir, 'atlas.txt')
         self.test_config.run_list = os.path.join(self.tmp_dir, 'runs.csv')
-        self.test_config.data_path = os.path.join(self.tmp_dir, 'data')
+        self.test_config.data_path = os.path.join(self.tmp_dir, 'hcp')
 
     @patch('ComisCorticalCode.run_for_sub.generate_stages_to_run', our_generate_stages)
     def test_make_sh_files(self):

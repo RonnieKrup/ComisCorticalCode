@@ -54,9 +54,9 @@ class Config:
         # Random string with the combination of lower and upper case
         runs = pd.read_csv(self.run_list, index_col='run_name')
         if len(runs.index) == 0:
-            self.run_name = '00001'
+            self.run_name = 'run_00001'
         else:
-            self.run_name = str(np.max([int(name) for name in runs.index]) + 1).zfill(5)
+            self.run_name = 'run_' + str(np.max([int(name.split('_')[-1]) for name in runs.index]) + 1).zfill(5)
 
     def validate_config_values(self):
         if not self.minvol or not self.atlas:
@@ -75,7 +75,7 @@ class Config:
                 if os.path.isfile(self.run_list):
                     self.get_run_name()
                 else:
-                    self.run_name = '00001'
+                    self.run_name = 'run_00001'
                     vals = ['run_name', 'minvol', 'stepscale', 'lenscale', 'angle', 'ntracts', 'dataset_name', 'atlas']
                     run_list = pd.DataFrame(columns=vals)
                     run_list = run_list.set_index('run_name')

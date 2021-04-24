@@ -78,17 +78,20 @@ def clear_dir(path):
         os.remove(f)
 
 
-def make_link(past_run_name, files_to_link):
-    """For every file in files_to_link, link to a file with the same suffix and path but named as `past_run`"""
+def get_file_from_past_run(full_path_of_run, past_run_name):
+    path = Path(full_path_of_run)
+    return full_path_of_run.replace(path.stem, past_run_name)
+
+
+def make_link(past_run_name, file_to_link):
+    """For the file file_to_link, link to a file with the same suffix and path but named as `past_run`"""
     # TODO: Create better documentation
     # WARNING WARNING WARNING - THIS MIGHT NOT DO WHAT YOU EXPECT
-    for new_file in files_to_link:
-        path = Path(new_file)
-        old_file = files_to_link.replace(path.stem, past_run_name)
-        if not DRY_RUN:
-            os.link(old_file, new_file)
-        else:
-            print(f'Would link {old_file} as {new_file}')
+    old_file = get_file_from_past_run(file_to_link, past_run_name)
+    if not DRY_RUN:
+        os.link(old_file, file_to_link)
+    else:
+        print(f'Would link {old_file} as {file_to_link}')
 
 
 def get_paths(base_dir, name):
@@ -101,6 +104,7 @@ def get_paths(base_dir, name):
         "mprage2diff": rf'reg_t12dif/{name}.mat',
         "template2mprage": rf'reg_template2t1/{name}.nii.gz',
         "5tt": fr'5tt/{name}.mif',
+        # One of the file types, not really the data
         'data': rf'data/{name}.nii.gz',
         'nodif': rf'nodif/{name}.nii.gz',
         'brain': rf'brain/{name}.nii.gz',
