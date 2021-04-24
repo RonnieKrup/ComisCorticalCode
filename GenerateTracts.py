@@ -62,7 +62,7 @@ class GenerateTracts(stage.Stage):
         pixdim = diff.header['pixdim'][1]
         commands = [
                     toolbox.ExternalCommand.get_command("tckgen", self.fod, self.tracts, "-force",
-                                                        f'-algorithm SD_STREAM', f'-select {self.ntracts}',
+                                                        f'-algorithm SD_STREAM', f'-select {int(self.ntracts * 100)}',
                                                         f'-step {pixdim * self.stepscale}',
                                                         f'-minlength {pixdim * self.lenscale[0]}',
                                                         f'-maxlength {pixdim * self.lenscale[1]}',
@@ -73,8 +73,7 @@ class GenerateTracts(stage.Stage):
 
                     toolbox.ExternalCommand.get_command("tcksift", self.tracts, self.fod, self.sifted_tracts, "-force",
                                                         "-fd_scale_gm", f'-act {self.segmentation}',
-                                                        f'-nthreads {self.nthreads}',
-                                                        f'-term_number {int(self.ntracts * 0.01)}',
+                                                        f'-nthreads {self.nthreads}', f'-term_number {self.ntracts}',
                                                         input_files=(self.tracts, self.fod, self.segmentation),
                                                         output_files=(self.sifted_tracts,))
                     ]

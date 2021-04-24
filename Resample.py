@@ -2,7 +2,7 @@ from ComisCorticalCode import Config, toolbox, stage
 import nibabel as nb
 import numpy as np
 import os
-import pandas as pd
+import shutil
 
 
 class Resample(stage.Stage):
@@ -38,15 +38,19 @@ class Resample(stage.Stage):
     def make_commands_for_stage(self):
         mask = nb.load(self.raw_mask).get_data()
         vol = np.sum(mask)
-
-        commands = [
-                    toolbox.ExternalCommand.get_command('mrgrid',  self.raw_data, 'regrid', self.data, "-force",
-                                                        f'-nthreads {self.nthreads}',
-                                                        f'-scale {(self.minvol / vol) ** (1 / 3)}',
-                                                        input_files=(self.raw_data,), output_files=(self.data,)),
-                    toolbox.ExternalCommand.get_command('fslroi', self.data, self.nodif, 0, 1, input_files=(self.data,),
-                                                        output_files=(self.nodif,)),
-                    toolbox.ExternalCommand.get_command('bet', self.nodif, self.brain, '-m', '-f 0.2', '-g 0.2',
-                                                        input_files=(self.nodif,), output_files=(self.brain, self.mask))
-                   ]
+        if not self.minvol:
+            shutil.copy(self.raw_data, self.data)
+            commands = []
+        else:
+            commands = [
+                        toolbox.ExternalCommand.get_command('mrgrid',  self.raw_data, 'regrid', self.data, "-force",
+                                                            f'-nthreads {self.nthreads}',
+                                                            f'-scale {(self.minvol / vol) ** (1 / 3)}',
+                                                            input_files=(self.raw_data,), output_files=(self.data,))]
+        commands.extend([
+                        toolbox.ExternalCommand.get_command('fslroi', self.data, self.nodif, 0, 1,
+                                                            input_files=(self.data,), output_files=(self.nodif,)),
+                        toolbox.ExternalCommand.get_command('bet', self.nodif, self.brain, '-m', '-f 0.2', '-g 0.2',
+                                                            input_files=(self.nodif,),
+                                                            output_files=(self.brain, self.mask))])
         return commands

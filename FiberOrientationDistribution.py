@@ -45,6 +45,6 @@ class FiberOrientationDistribution(stage.Stage):
                                                         f'-fslgrad {" ".join(self.bv)}', f'-nthreads {self.nthreads}',
                                                         f'-mask {self.mask}',
                                                         input_files=(self.data, self.response,  self.bv[0], self.bv[1],
-                                                                     self.mask), output_files=self.fod,)
+                                                                     self.mask), output_files=(self.fod,))
                    ]
         return commands

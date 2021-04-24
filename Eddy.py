@@ -10,7 +10,7 @@ class Eddy(stage.BaseStage):
         self.pa = os.path.join(raw_dat, 'dif_PA.nii.gz')
         self.bvecs = bv[0]
         self.bvals = bv[1]
-        self.ap_denoised = self.ap.replace('.nii.gz', '_denpised.nii.gz')
+        self.ap_denoised = self.ap.replace('.nii.gz', '_denoised.nii.gz')
         self.hifi_nodif = os.path.join(f'{temp}', 'hifi_nodif.nii.gz')
         self.nodif = os.path.join(raw_dat, 'nodif.nii.gz')
         self.nodif_pa = os.path.join(f'{temp}', 'nodif_PA.nii.gz')

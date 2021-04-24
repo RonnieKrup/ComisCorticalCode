@@ -1,5 +1,6 @@
+import sys; print(sys.path)
+import os; print(os.getcwd())
 from ComisCorticalCode import Eddy, Resample, Registrations, Segmentation, FiberOrientationDistribution, GenerateTracts, SiftToAtlas, Config, toolbox
-import sys
 import os
 
 
@@ -8,8 +9,6 @@ def generate_stages_to_run(config):
               Registrations.RegistrationAtlas, Segmentation.Segmentation, Segmentation.SegmentRegistration,
               FiberOrientationDistribution.FiberOrientationDistribution, GenerateTracts.GenerateTracts,
               SiftToAtlas.SiftToAtlas]
-    if not config.minvol:
-        stages.remove(Resample.Resample)
     return stages
 
 

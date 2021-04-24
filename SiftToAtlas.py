@@ -76,7 +76,7 @@ class SiftToAtlas(stage.Stage):
             toolbox.ExternalCommand.get_command("tcksift", self.atlas_tracts, self.fod, self.sifted_atlas_tracts,
                                                 "-force", "-fd_scale_gm", f'-act {self.segmentation}',
                                                 f'-nthreads {self.nthreads}',
-                                                f'-term_number {int(self.ntracts * 0.01)}',
+                                                f'-term_number {self.ntracts}',
                                                 input_files=(self.atlas_tracts, self.fod,
                                                              self.segmentation),
                                                 output_files=(self.sifted_atlas_tracts,))
