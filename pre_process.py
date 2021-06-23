@@ -59,7 +59,7 @@ def resample(paths):
     vol = np.sum(mask)
     cmd = []
     cmd.append(get_command('mrresize', (paths["data"], paths["data"].replace(".nii.gz", "_resampled.nii.gz"), "-force"),
-                           nthreads=Config.NTHREADS, scale=(Config.MINVOL / vol) ** (1 / 3)))
+                           nthreads=Config.NTHREADS, scale=(Config.minvol / vol) ** (1 / 3)))
     paths['data'] = paths["data"].replace(".nii.gz", "_resampled.nii.gz")
     cmd.append(get_command('fslroi', (paths["data"], paths["nodif"], 0, 1)))
     paths["brain"] = paths["brain"].replace(".nii.gz", "_resampled.nii.gz")
@@ -96,8 +96,8 @@ def register_t12diff(paths):
 
 def register_template2t1(paths):
     cmd = []
-    cmd.append(get_command("flirt", ref=Config.ATLAS_TEMPLATE, In=paths["mprage"], omat=paths["mprage2template"]))
-    cmd.append(get_command("fnirt", In=paths["mprage"], aff=paths["mprage2template"], ref=Config.ATLAS_TEMPLATE,
+    cmd.append(get_command("flirt", ref=Config.atlas_template, In=paths["mprage"], omat=paths["mprage2template"]))
+    cmd.append(get_command("fnirt", In=paths["mprage"], aff=paths["mprage2template"], ref=Config.atlas_template,
                            cout=paths["mprage2template"], config="T1_2_MNI152_2mm"))
     cmd.append(get_command('invwarp', ref=paths["mprage"], out=paths["template2mprage"], warp=paths["mprage2template"]))
     if run_commands(cmd):
@@ -176,12 +176,12 @@ def generate_tracts(paths):
     diff = nb.load(paths['brain'])
     pixdim = diff.header['pixdim'][1]
     cmd.append(get_command("tckgen", (paths["fod"], paths["tracts"], "-force"), algorithm="Tensor_Det",
-                           select=Config.NTRACTS, step=pixdim * Config.PIXSCALE, minlength=pixdim * Config.MINSCALE,
+                           select=Config.ntracts, step=pixdim * Config.PIXSCALE, minlength=pixdim * Config.MINSCALE,
                            maxlength=pixdim * Config.MAXSCALE, angle=Config.ANGLE, seed_image=paths["brain_mask"],
                            act=paths["5tt"], fslgrad=f"{paths['bvecs']} {paths['bvals']}"))
     cmd.append(get_command("tcksift", (paths["trats"], paths["fod"], paths["sifted_tracts"],
                                        "-force", "-fd_scale_gm"),
-                           act=paths["5tt"], nthreads=Config.NTHREADS, term_number=Config.NTRACTS * 0.1))
+                           act=paths["5tt"], nthreads=Config.NTHREADS, term_number=Config.ntracts * 0.1))
     if run_commands(cmd):
         print("eddy complete")
         shutil.rmtree(paths["temp"])
@@ -208,7 +208,7 @@ def sift_atlas(paths):
                            files="single"))
     cmd.append(get_command("tcksift", (paths["atlas_tracts"], paths["fod"], paths["sifted_atlas_tracts"],
                                        "-force", "-fd_scale_gm"),
-                           act=paths["5tt"], nthreads=Config.NTHREADS, term_number=Config.NTRACTS * 0.1))
+                           act=paths["5tt"], nthreads=Config.NTHREADS, term_number=Config.ntracts * 0.1))
 
     if run_commands(cmd):
         print("eddy complete")

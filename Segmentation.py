@@ -3,7 +3,7 @@ from ComisCorticalCode import Config, toolbox, stage
 
 
 class SegmentationStage(stage.Stage):
-    def __init__(self, *, mprage, segmentation, mprage2diff, brain, temp, nthreads, raw_dat):
+    def __init__(self, *, mprage, segmentation, mprage2diff, brain, temp, nthreads, raw_dat, minvol):
         self.env = dict(os.environ)  # Copy the existing environment variables
         self.env['SGE_ROOT'] = ''
         self.mprage_brain = mprage.replace('.nii.gz', 'brain.nii.gz')
@@ -13,6 +13,7 @@ class SegmentationStage(stage.Stage):
         self.brain = brain
         self.sgmentation_affine = os.path.join(temp, 'segmentation_affine.txt')
         self.nthreads = nthreads
+        self.minvol = minvol
 
     @staticmethod
     def create_from_dict_(cls, paths, config):
@@ -23,9 +24,10 @@ class SegmentationStage(stage.Stage):
         temp = paths['temp']
         nthreads = config.nthreads
         raw_dat = paths['raw_dat']
+        minvol = config.minvol
         return cls(mprage=mprage,
                    segmentation=segmentation, mprage2diff=mprage2diff,
-                   brain=brain, temp=temp, nthreads=nthreads, raw_dat=raw_dat)
+                   brain=brain, temp=temp, nthreads=nthreads, raw_dat=raw_dat, minvol=minvol)
 
 
 class Segmentation(SegmentationStage):
@@ -53,7 +55,7 @@ class SegmentRegistration(SegmentationStage):
         return self.segmentation,
 
     def parameters_for_comparing_past_runs(self):
-        return ['MINVOL']
+        return ['minvol']
 
     @staticmethod
     def create_from_dict(paths, config):

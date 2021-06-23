@@ -7,7 +7,7 @@ import numpy as np
 
 class SiftToAtlas(stage.Stage):
     def __init__(self, *, atlas, atlas_for_connectome, temp, nthreads, tracts, fod, sifted_atlas_tracts, segmentation,
-                 ntracts):
+                 ntracts, minvol, lenscale_min, lenscale_max, stepscale, angle, atlas_template):
         self.atlas = atlas
         self.atlas_for_connectome = atlas_for_connectome
         if self.atlas_for_connectome:
@@ -23,6 +23,12 @@ class SiftToAtlas(stage.Stage):
         self.sifted_atlas_tracts = sifted_atlas_tracts
         self.segmentation = segmentation
         self.ntracts = ntracts
+        self.minvol = minvol
+        self.lenscale_min = lenscale_min
+        self.lenscale_max = lenscale_max
+        self.stepscale = stepscale
+        self.angle = angle
+        self.atlas_template = atlas_template
 
     @staticmethod
     def create_from_dict(paths, config):
@@ -35,6 +41,12 @@ class SiftToAtlas(stage.Stage):
         sifted_atlas_tracts = paths["sifted_atlas_tracts"]
         segmentation = paths["5tt"]
         ntracts = config.ntracts
+        minvol = config.minvol
+        lenscale_min = config.lenscale_min
+        lenscale_max = config.lenscale_max
+        stepscale=config.stepscale
+        angle = config.angle
+        atlas_template = config.atlas_template
         return SiftToAtlas(atlas=atlas,
                            atlas_for_connectome=atlas_for_connectome,
                            temp=temp,
@@ -43,10 +55,16 @@ class SiftToAtlas(stage.Stage):
                            fod=fod,
                            sifted_atlas_tracts=sifted_atlas_tracts,
                            segmentation=segmentation,
-                           ntracts=ntracts)
+                           ntracts=ntracts,
+                           minvol=minvol,
+                           lenscale_min=lenscale_min,
+                           lenscale_max=lenscale_max,
+                           stepscale=stepscale,
+                           angle=angle,
+                           atlas_template=atlas_template)
 
     def parameters_for_comparing_past_runs(self):
-        return ['MINVOL', 'NTRACTS', 'LINSCALE', 'STEPSCALE', 'ANGLE', 'ATLAS']
+        return ['minvol', 'ntracts', 'lenscale_min', 'lenscale_max', 'stepscale', 'angle', 'atlas_template']
 
     def needed_files(self):
         return self.sifted_atlas_tracts,

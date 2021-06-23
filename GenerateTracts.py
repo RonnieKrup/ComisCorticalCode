@@ -4,13 +4,14 @@ import os
 
 
 class GenerateTracts(stage.Stage):
-    def __init__(self, *, brain, fod, tracts, ntracts, lenscale, stepscale, angle, mask, segmentation, bv,
-                 sifted_tracts, nthreads):
+    def __init__(self, *, brain, fod, tracts, ntracts, lenscale_min, lenscale_max, stepscale, angle, mask, segmentation, bv,
+                 sifted_tracts, nthreads, minvol):
         self.brain = brain
         self.fod = fod
         self.tracts = tracts
         self.ntracts = ntracts
-        self.lenscale = lenscale
+        self.lenscale_min = lenscale_min
+        self.lenscale_max = lenscale_max
         self.stepscale = stepscale
         self.angle = angle
         self.mask = mask
@@ -18,6 +19,7 @@ class GenerateTracts(stage.Stage):
         self.bv = bv
         self.sifted_tracts = sifted_tracts
         self.nthreads = nthreads
+        self.minvol = minvol
 
     @staticmethod
     def create_from_dict(paths, config):
@@ -25,7 +27,8 @@ class GenerateTracts(stage.Stage):
         fod = paths["fod"]
         tracts = paths["tracts"]
         ntracts = config.ntracts
-        lenscale = config.linescale
+        lenscale_min = config.lenscale_min
+        lenscale_max = config.lenscale_max
         stepscale = config.stepscale
         angle = config.angle
         mask = paths["mask"]
@@ -33,18 +36,21 @@ class GenerateTracts(stage.Stage):
         bv = [paths['bvecs'], paths['bvals']]
         sifted_tracts = paths["sifted_tracts"]
         nthreads = config.nthreads
+        minvol = config.minvol
         return GenerateTracts(brain=brain,
                               fod=fod,
                               tracts=tracts,
                               ntracts=ntracts,
-                              lenscale=lenscale,
+                              lenscale_min=lenscale_min,
+                              lenscale_max=lenscale_max,
                               stepscale=stepscale,
                               angle=angle,
                               mask=mask,
                               segmentation=segmentation,
                               bv=bv,
                               sifted_tracts=sifted_tracts,
-                              nthreads=nthreads)
+                              nthreads=nthreads,
+                              minvol=minvol)
 
     # @property
     def needed_files(self):
@@ -54,7 +60,7 @@ class GenerateTracts(stage.Stage):
     # @property
     def parameters_for_comparing_past_runs(self):
         """If these parameters are the same in a previous run, we can re-use the results."""
-        return 'MINVOL', 'NTRACTS', 'LINSCALE', 'STEPSCALE', 'ANGLE'
+        return 'minvol', 'ntracts', 'lenscale_min','lenscale_max',  'stepscale', 'angle'
 
     def make_commands_for_stage(self):
         """If needed to generate the stage output, these commands need to run."""
@@ -64,8 +70,8 @@ class GenerateTracts(stage.Stage):
                     toolbox.ExternalCommand.get_command("tckgen", self.fod, self.tracts, "-force",
                                                         f'-algorithm SD_STREAM', f'-select {int(self.ntracts * 100)}',
                                                         f'-step {pixdim * self.stepscale}',
-                                                        f'-minlength {pixdim * self.lenscale[0]}',
-                                                        f'-maxlength {pixdim * self.lenscale[1]}',
+                                                        f'-minlength {pixdim * self.lenscale_min}',
+                                                        f'-maxlength {pixdim * self.lenscale_max}',
                                                         f'-angle {self.angle}', f'-seed_image {self.mask}',
                                                         f'-act {self.segmentation}', f'-fslgrad {" ".join(self.bv)}',
                                                         output_files=(self.tracts,),

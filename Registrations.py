@@ -4,7 +4,7 @@ import os
 
 class RegistrationStage(stage.Stage):
     def __init__(self, *, mprage, temp, brain, mprage2diff, atlas_template, template2mprage, sub_atlas, atlas,
-                 subject_atlas):
+                 subject_atlas, minvol):
         self.mprage = mprage
         self.mprage_brain = self.mprage.replace('.nii.gz', 'brain.nii.gz')
         self.dif2mprage = os.path.join(temp, 'dif2mprage.mat')
@@ -16,6 +16,7 @@ class RegistrationStage(stage.Stage):
         self.sub_atlas = sub_atlas
         self.atlas = atlas
         self.subject_atlas = subject_atlas
+        self.minvol = minvol
 
     @staticmethod
     def create_from_dict_(cls, paths, config):
@@ -29,6 +30,7 @@ class RegistrationStage(stage.Stage):
         sub_atlas = paths['atlas']
         subject_atlas = paths["atlas"]
         atlas = config.atlas
+        minvol = config.minvol
         return cls(
             mprage=mprage,
             temp=temp,
@@ -38,11 +40,12 @@ class RegistrationStage(stage.Stage):
             template2mprage=template2mprage,
             sub_atlas=sub_atlas,
             subject_atlas=subject_atlas,
-            atlas=atlas)
+            atlas=atlas,
+            minvol=minvol)
 
 
 class RegistrationT12diff(RegistrationStage):
-    PARAMETERS = ['MINVOL']
+    PARAMETERS = ['minvol']
 
     @staticmethod
     def create_from_dict(paths, config):
@@ -72,7 +75,7 @@ class RegistrationT12diff(RegistrationStage):
 
 
 class RegistrationTemplate2t1(RegistrationStage):
-    PARAMETERS = ['ATLAS_TEMPLATE'] + RegistrationT12diff.PARAMETERS
+    PARAMETERS = ['atlas_template'] + RegistrationT12diff.PARAMETERS
 
     @staticmethod
     def create_from_dict(paths, config):
@@ -103,7 +106,7 @@ class RegistrationTemplate2t1(RegistrationStage):
 
 
 class RegistrationAtlas(RegistrationStage):
-    PARAMETERS = RegistrationTemplate2t1.PARAMETERS + ['ATLAS_TEMPLATE', 'MINVOL']
+    PARAMETERS = RegistrationTemplate2t1.PARAMETERS + ['atlas_template', 'minvol']
 
     @staticmethod
     def create_from_dict(paths, config):

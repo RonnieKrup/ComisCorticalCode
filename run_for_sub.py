@@ -42,5 +42,5 @@ if __name__ == '__main__':
                     '/mnt/e/Ronniek/ComisCorticalCode/test_data/out')
     else:
         #run_for_sub(*sys.argv[1:])
-        run_for_sub('/mnt/e/Ronniek/ComisCorticalCode/test_data/sub2', 'test',
-                    '/mnt/e/Ronniek/ComisCorticalCode/test_data/out')
+        run_for_sub(r'/mnt/e/Ronniek/tb4e/YA_lab_Yaniv_002307_20201230_1703/', 'tb4e_list',
+                    r'/mnt/e/Ronniek/tb4e/out')

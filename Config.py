@@ -11,7 +11,8 @@ class Config:
         self.dataset_name = 'dataset'
         self.data_path = os.path.join(Path(os.getcwd()).parent, self.dataset_name)
         self.stepscale = 0.5
-        self.lenscale = (30, 500)
+        self.lenscale_min = 30
+        self.lenscale_max = 500
         self.angle = 45
         self.ntracts = 5000000
         self.atlas = None
@@ -76,7 +77,8 @@ class Config:
                     self.get_run_name()
                 else:
                     self.run_name = 'run_00001'
-                    vals = ['run_name', 'minvol', 'stepscale', 'lenscale', 'angle', 'ntracts', 'dataset_name', 'atlas']
+                    vals = ['run_name', 'minvol', 'stepscale', 'lenscale_min', 'lenscale_max', 'angle',
+                            'ntracts', 'dataset_name', 'atlas']
                     run_list = pd.DataFrame(columns=vals)
                     run_list = run_list.set_index('run_name')
                     run_list.to_csv(self.run_list)

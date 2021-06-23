@@ -33,7 +33,7 @@ class Resample(stage.Stage):
         return [self.data, self.nodif, self.brain, self.mask]
 
     def parameters_for_comparing_past_runs(self):
-        return ['MINVOL']
+        return ['minvol']
 
     def make_commands_for_stage(self):
         mask = nb.load(self.raw_mask).get_data()

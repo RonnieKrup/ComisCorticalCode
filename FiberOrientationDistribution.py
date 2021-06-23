@@ -3,7 +3,7 @@ import os
 
 
 class FiberOrientationDistribution(stage.Stage):
-    def __init__(self, data, response, temp, mask, nthreads, fod, bv):
+    def __init__(self, *, data, response, temp, mask, nthreads, fod, bv, minvol):
         self.commands = []
         self.data = data
         self.response = response
@@ -13,6 +13,7 @@ class FiberOrientationDistribution(stage.Stage):
         self.mask = mask
         self.nthreads = nthreads
         self.bv = bv
+        self.minvol = minvol
 
     @staticmethod
     def create_from_dict(paths, config):
@@ -23,13 +24,15 @@ class FiberOrientationDistribution(stage.Stage):
         nthreads = config.nthreads
         fod = paths['fod']
         bv = [paths['bvecs'], paths['bvals']]
-        return FiberOrientationDistribution(data, response, temp, mask, nthreads, fod, bv)
+        minvol = config.minvol
+        return FiberOrientationDistribution(data=data, response=response, temp=temp, mask=mask, nthreads=nthreads,
+                                            fod=fod, bv=bv, minvol=minvol)
 
     def needed_files(self):
         return self.fod,
 
     def parameters_for_comparing_past_runs(self):
-        return ['MINVOL']
+        return ['minvol']
 
     def make_commands_for_stage(self):
         # TODO: ask barak about the lists
