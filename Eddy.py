@@ -20,7 +20,7 @@ class Eddy(stage.BaseStage):
         self.mask = self.brain.replace('.nii.gz', '_mask.nii.gz')
         self.data = os.path.join(raw_dat, 'data.nii.gz')
         self.env = dict(os.environ)  # Copy the existing environment variables
-        self.env['OMP_NUM_THREADS '] = str(nthreads)
+        self.env['OMP_NUM_THREADS'] = str(nthreads)
         self.index_datain = index_datain
 
     @staticmethod
