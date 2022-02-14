@@ -91,7 +91,7 @@ class Eddy(stage.BaseStage):
         return commands
 
     def make_commands_eddy(self):
-        commands = [ExternalCommand.get_command(f'eddy_openmp', '--data_is_shelled', imain=self.ap_denoised,
+        commands = [ExternalCommand.get_command(f'eddy_openmp', '--data_is_shelled', imain=self.ap,
                                                 mask=self.mask, index=self.index_datain[0], acqp=self.index_datain[1],
                                                 bvecs=self.bvecs, bvals=self.bvals, fwhm=0, topup=f'{self.topup}out',
                                                 flm='quadratic', out=self.data,
