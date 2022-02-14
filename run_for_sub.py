@@ -27,7 +27,7 @@ def run_for_sub(subject_path, run_name, out_path):
                 "FSLMACHINELIST": "",
                 "FSLGECUDAQ":"cuda.q",
                 "FSLOUTPUTTYPE": "NIFTI_GZ"}
-    os.environ.update(fsl_vars)
+    #os.environ.update(fsl_vars)
     ################################
     paths = toolbox.get_paths(subject_path, run_name)
     for stage in generate_stages_to_run(config):
@@ -41,6 +41,6 @@ if __name__ == '__main__':
         run_for_sub('/mnt/e/Ronniek/ComisCorticalCode/test_data/sub2', 'test',
                     '/mnt/e/Ronniek/ComisCorticalCode/test_data/out')
     else:
-        #run_for_sub(*sys.argv[1:])
-        run_for_sub(r'/mnt/e/Ronniek/tb4e/YA_lab_Yaniv_002307_20201230_1703/', 'tb4e_list',
-                    r'/mnt/e/Ronniek/tb4e/out')
+        run_for_sub(*sys.argv[1:])
+        #run_for_sub(r'/mnt/e/Ronniek/tb4e/YA_lab_Yaniv_002307_20201230_1703/', 'tb4e_list',
+        #            r'/mnt/e/Ronniek/tb4e/out')

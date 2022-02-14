@@ -20,7 +20,7 @@ class Eddy(stage.BaseStage):
         self.mask = self.brain.replace('.nii.gz', '_mask.nii.gz')
         self.data = os.path.join(raw_dat, 'data.nii.gz')
         self.env = dict(os.environ)  # Copy the existing environment variables
-        self.env['OMP_NUM_THREADS '] = str(nthreads)
+        self.env['OMP_NUM_THREADS'] = str(nthreads)
         self.index_datain = index_datain
 
     @staticmethod
@@ -91,7 +91,7 @@ class Eddy(stage.BaseStage):
         return commands
 
     def make_commands_eddy(self):
-        commands = [ExternalCommand.get_command(f'eddy_openmp', '--data_is_shelled', imain=self.ap_denoised,
+        commands = [ExternalCommand.get_command(f'eddy_openmp', '--data_is_shelled', imain=self.ap,
                                                 mask=self.mask, index=self.index_datain[0], acqp=self.index_datain[1],
                                                 bvecs=self.bvecs, bvals=self.bvals, fwhm=0, topup=f'{self.topup}out',
                                                 flm='quadratic', out=self.data,

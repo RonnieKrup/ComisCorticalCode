@@ -74,6 +74,7 @@ class GenerateTracts(stage.Stage):
                                                         f'-maxlength {pixdim * self.lenscale_max}',
                                                         f'-angle {self.angle}', f'-seed_image {self.mask}',
                                                         f'-act {self.segmentation}', f'-fslgrad {" ".join(self.bv)}',
+                                                        f'-nthreads {self.nthreads}',
                                                         output_files=(self.tracts,),
                                                         input_files=(self.fod, self.mask, self.segmentation)),
 
