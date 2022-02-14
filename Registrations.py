@@ -95,7 +95,7 @@ class RegistrationTemplate2t1(RegistrationStage):
                                                         input_files=(self.atlas_template, self.mprage)),
                     toolbox.ExternalCommand.get_command("fnirt", In=self.mprage, aff=self.mprage2template,
                                                         ref=self.atlas_template, cout=self.mprage2template,
-                                                        config="/state/partition1/home/ronniek/ronniek/fnirtcnf/T1_2_MNI152_2mm", output_files=(self.mprage2template,),
+                                                        config="T1_2_MNI152_2mm", output_files=(self.mprage2template,),
                                                         input_files=(self.mprage, self.mprage2template,
                                                                      self.atlas_template)),
                     toolbox.ExternalCommand.get_command('invwarp', ref=self.mprage, out=self.template2mprage,
