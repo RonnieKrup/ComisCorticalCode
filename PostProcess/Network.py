@@ -56,15 +56,6 @@ def get_efficiency_both_hemis(graphs):
     return np.mean(g_eff)
 
 
-def get_graph_efficiency(g):
-    short_paths = dict(nx.all_pairs_dijkstra_path_length(g))
-    d = []
-    for i in short_paths.keys():
-        d.extend([short_paths[i][x] for x in short_paths[i].keys() if x != i])
-    eff = 1 / np.array(d)
-    eff[np.array(d) == 0] = 0
-    eff = np.mean(eff)
-    return eff
 
 
 def leave_one_out(graphs, stats, labels, save=None):

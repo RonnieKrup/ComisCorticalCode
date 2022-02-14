@@ -88,24 +88,6 @@ def make_hemis_sum(tracts, data, atlas, nodes=0, total=30000):
 
 
 
-def get_efficiency_both_hemis(cms):
-    g_eff = []
-    for hemi in ['L', 'R']:
-        cm = np.array(cms[hemi])
-        cm = cm / np.sum(cm) * 100
-        cm2 = 1 / cm
-        cm2[cm == 0] = 0
-        g = nx.from_numpy_matrix(cm2)
-        short_paths = dict(nx.all_pairs_dijkstra_path_length(g))
-        d = []
-        for i in short_paths.keys():
-            d.extend([short_paths[i][x] for x in short_paths[i].keys() if x != i])
-        eff = 1 / np.array(d)
-        eff[np.array(d) == 0] = 0
-        eff = np.mean(eff)
-        g_eff.append(eff)
-    return np.mean(g_eff)
-
 
 def get_odf_comis(path):
     corpus = rf'{path}/corpus_mask.nii.gz'
