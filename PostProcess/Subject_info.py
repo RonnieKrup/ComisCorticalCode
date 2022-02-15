@@ -1,3 +1,11 @@
+############### NOTE! ###############
+# this file is untested.            #
+# many of the functions here were   #
+# written for older versions of the #
+# pipeline and have not been fixed  #
+# yet                               #
+#####################################
+
 from collections import defaultdict
 from statsmodels.stats.multicomp import MultiComparison
 import numpy as np

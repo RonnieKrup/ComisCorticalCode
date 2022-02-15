@@ -1,4 +1,12 @@
-from . import Network, File_handling, Graphics, Subject_info
+############### NOTE! ###############
+# this file is untested.            #
+# many of the functions here were   #
+# written for older versions of the #
+# pipeline and have not been fixed  #
+# yet                               #
+#####################################
+
+from ComisCorticalCode.PostProcess import Network, File_handling, Graphics, Subject_info
 from collections import defaultdict
 import numpy as np
 

@@ -1,4 +1,11 @@
-from . import Network
+############### NOTE! ###############
+# this file is untested.            #
+# many of the functions here were   #
+# written for older versions of the #
+# pipeline and have not been fixed  #
+# yet                               #
+#####################################
+
 from matplotlib import colors, cm
 from matplotlib import pyplot as plt
 import numpy as np

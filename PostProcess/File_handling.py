@@ -1,3 +1,12 @@
+############### NOTE! ###############
+# this file is untested.            #
+# many of the functions here were   #
+# written for older versions of the #
+# pipeline and have not been fixed  #
+# yet                               #
+#####################################
+
+
 import nibabel as nib
 import pandas as pd
 import scipy.io as spio

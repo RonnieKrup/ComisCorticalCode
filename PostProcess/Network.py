@@ -1,4 +1,12 @@
-from . import File_handling
+############### NOTE! ###############
+# this file is untested.            #
+# many of the functions here were   #
+# written for older versions of the #
+# pipeline and have not been fixed  #
+# yet                               #
+#####################################
+
+from ComisCorticalCode.PostProcess import File_handling
 import bct # https://pypi.org/project/bctpy/
 import networkx as nx
 import numpy as np

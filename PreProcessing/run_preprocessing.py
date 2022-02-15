@@ -1,3 +1,11 @@
+############### NOTE! ###############
+# this file is untested.            #
+# most functions have been tested   #
+# and work seperately, but the whole#
+# workflow is still not stable      #
+# use at your oun discretion        #
+#####################################
+
 import argparse
 import time
 import os
