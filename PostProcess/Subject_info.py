@@ -4,6 +4,7 @@ import numpy as np
 import random
 from scipy.stats import pearsonr
 
+
 def create_family_pairs(sub_info_res, stats, bio, data_type='diff'):
     # data_type can be 'diff' for difference between pairs,
     # 'twinpair' for a tuple of both twins' bio

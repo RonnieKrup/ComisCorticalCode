@@ -43,10 +43,10 @@ def make_basic_graph(x, y, xcaption, ycaption, title, ax_scale=1, scatter_kwargs
     return slope, inter, f
 
 
-def display_stats_on_surface(hemi_stat_data, hemi='Left', title='', thresh=0.1, save=None):
-    pial = fr'/state/partition1/apps/freesurfer/subjects/cvs_avg35_inMNI152/surf/{hemi[0].lower()}h.pial'
-    inflated = fr'/state/partition1/apps/freesurfer/subjects/cvs_avg35_inMNI152/surf/{hemi[0].lower()}h.inflated'
-    sulc = fr"/state/partition1/apps/freesurfer/subjects/cvs_avg35_inMNI152/surf/{hemi[0].lower()}h.sulc"
+def display_stats_on_surface(hemi_stat_data, freesurfer_path, hemi='Left', title='', thresh=0.1, save=None):
+    pial = fr'{freesurfer_path}/subjects/cvs_avg35_inMNI152/surf/{hemi[0].lower()}h.pial'
+    inflated = fr'{freesurfer_path}/subjects/cvs_avg35_inMNI152/surf/{hemi[0].lower()}h.inflated'
+    sulc = fr"{freesurfer_path}/subjects/cvs_avg35_inMNI152/surf/{hemi[0].lower()}h.sulc"
     aal_surf = surface.vol_to_surf(hemi_stat_data, pial)
 
     f, (ax1, ax2) = plt.subplots(2, 1, figsize=(7, 5), dpi=180, subplot_kw={'projection': '3d'})
@@ -161,6 +161,7 @@ def barplot_annotate_brackets(num1, num2, data, center, height, yerr=None, dh=.0
     :param barh: bar height in axes coordinates (0 to 1)
     :param fs: font size
     :param maxasterix: maximum number of asterixes to write (for very small p-values)
+    snippet taken from here: https://stackoverflow.com/questions/11517986/indicating-the-statistically-significant-difference-in-bar-graph
     """
 
     if type(data) is str:

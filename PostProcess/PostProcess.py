@@ -5,6 +5,8 @@ import numpy as np
 
 
 def leave_one_out(stats, dataset, labels, atlas):
+    # TODO: what is the difference between this function and the one in Network?
+
     graphs = Network.get_all_graphs(stats, dataset)
     corrs_per_node = Network.leave_one_out(graphs, stats, labels)
     vals_per_node = {k: -0.5730816588001257-v[0] for k, v in corrs_per_node.items()}

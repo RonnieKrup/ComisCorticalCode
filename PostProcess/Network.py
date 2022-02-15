@@ -1,5 +1,5 @@
 from . import File_handling
-import bct
+import bct # https://pypi.org/project/bctpy/
 import networkx as nx
 import numpy as np
 import scipy.io as spio
@@ -8,13 +8,14 @@ from tqdm import tqdm
 import random
 
 
-def get_all_graphs(stats, dataset, return_cm=True):
+def get_all_graphs(stats, dataset, base_path, return_cm=True):
+    # TODO: ubdate for new version of functions
     all_cm = {'L': [], 'R': [], 'comis': []}
     graphs = []
     for sub in stats.index:
         g = {}
         for hemi in ['L', 'R']:
-            cm = spio.loadmat(fr"/state/partition1/home/ronniek/ronniek/{dataset}/{sub}/T1w/Diffusion/cm_{hemi}.mat")[
+            cm = spio.loadmat(fr"{base_path}/{dataset}/{sub}/T1w/Diffusion/cm_{hemi}.mat")[
                 'cm']
             cm = cm / np.sum(cm) * 100
             cm2 = 1 / cm

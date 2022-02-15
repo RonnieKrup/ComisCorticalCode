@@ -155,17 +155,16 @@ def show_matrix(matrix, lookup, atlas_path):
     plt.show()
 
 if __name__ == "__main__":
-    subs = glob(r'/mnt/s/hcp/*/')
-    atlas_path = '/mnt/e/Ronniek/BN_atlas/BN_Atlas_274_combined_1mm.csv'
-    #atlas_path = '/mnt/e/ronniek/AAL2_data/AAL150.txt'
+    subs = glob(r'/path/to/sub/folder')
+    atlas_path = '/path/to/atlas'
+
     for sub in subs:
         if os.path.isfile(fr'{sub}/atlas/rBNA.nii'):
             try:
                 m, lookup, grouping = create_cms(sub, 'HCP', atlas_path, alternative_save="rBNA")
                 print(sub)
-                #show_matrix(m, lookup, atlas_path)
-            #except FileNotFoundError:
-            #    print(sub + " has no files")
+            except FileNotFoundError:
+                print(sub + " has no files")
             except ValueError:
                 print(sub + " value error")
             except nb.filebasedimages.ImageFileError:

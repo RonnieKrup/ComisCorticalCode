@@ -1,12 +1,12 @@
-import sys; print(sys.path)
-import os; print(os.getcwd())
+import sys
+import os
 from ComisCorticalCode.PreProcessing import toolbox, Config
 from ComisCorticalCode.PreProcessing.Stages import Resample, Eddy, FiberOrientationDistribution, Registrations, \
     GenerateTracts, SiftToAtlas, Segmentation
 import os
 
 
-def generate_stages_to_run(config):
+def generate_stages_to_run():
     stages = [Eddy.Eddy, Resample.Resample, Registrations.RegistrationT12diff, Registrations.RegistrationTemplate2t1,
               Registrations.RegistrationAtlas, Segmentation.Segmentation, Segmentation.SegmentRegistration,
               FiberOrientationDistribution.FiberOrientationDistribution, GenerateTracts.GenerateTracts,
@@ -40,9 +40,8 @@ def run_for_sub(subject_path, run_name, out_path):
 
 if __name__ == '__main__':
     if toolbox.DRY_RUN:
-        run_for_sub('/mnt/e/Ronniek/ComisCorticalCode/test_data/sub2', 'test',
-                    '/mnt/e/Ronniek/ComisCorticalCode/test_data/out')
+        test_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'test_data')
+        run_for_sub(f'{test_dir}/sub', 'test',
+                    f'{test_dir}/out')
     else:
         run_for_sub(*sys.argv[1:])
-        #run_for_sub(r'/mnt/e/Ronniek/tb4e/YA_lab_Yaniv_002307_20201230_1703/', 'tb4e_list',
-        #            r'/mnt/e/Ronniek/tb4e/out')

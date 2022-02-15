@@ -61,16 +61,14 @@ def make_dirs(config):
 def check_if_qsub_available():
     return which('qsub') is not None
 
-# TODO: 2. Run the sh file for a new candidate and make sure it works for that single subject
-# TODO: 4.
 
 
-def run_batch_task(script_path): # tested, TODO: waiting for barak
+def run_batch_task(script_path): # tested, TODO: waiting for double check
     job_name = Path(script_path).stem
     call(f'qsub -N {job_name} {script_path}')
 
 
-def run_single_task(script_path, out):# TODO: ask barak if I can do this without the SH file (and still have a log)
+def run_single_task(script_path, out):# TODO: check if I can do this without the SH file (and still have a log)
     call(f'bash {script_path} > {os.path.join(out, "qstOut")}')
 
 

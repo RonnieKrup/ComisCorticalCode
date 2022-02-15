@@ -27,33 +27,33 @@ def transpose_dict(d):
     return new_d
 
 
-def read_info(dataset):
-    sub_info_res = None
+def read_info(dataset, info_paths):
+    sub_infos = []
     if dataset == 'HCP':
-        sub_info_res = pd.read_csv(
-            "/state/partition1/home/ronniek/ronniek/HCP/RESTRICTED_ronniek_4_28_2019_8_15_50.csv")
-        sub_info = pd.read_csv("/state/partition1/home/ronniek/ronniek/HCP/HCPsubList.csv")
-        sub_info_res = sub_info_res.set_index('Subject')
-        sub_info = sub_info.set_index('Subject')
+        for i in info_paths:
+            sub_info_res = pd.read_csv(info_paths)
+            sub_info = sub_info_res.set_index('Subject')
+            sub_infos.append(sub_info)
     else:
-        sub_info = pd.read_csv("/state/partition1/home/ronniek/ronniek/theBase/theBase_ques.csv")
+        sub_info = pd.read_csv(info_paths[0])
         sub_info = sub_info.set_index('Column1')
         sub_info.index = [i.replace('subj', 'Subj') for i in sub_info.index]
-    if sub_info_res:
-        return sub_info, sub_info_res
-    return sub_info
+        sub_infos.append(sub_info)
+    return sub_infos
 
-def get_all_cm(stats, dataset):
+def get_all_cm(stats, dataset, base_path):
+    """NOTE!
+    This function is from an older version of the code and should be deprecated!"""
+
     all_cm = {'L': [], 'R': [], 'comis': []}
     for sub in stats.index:
         for hemi in ['L', 'R', 'comis']:
-            cm = \
-            spio.loadmat(fr"/state/partition1/home/ronniek/ronniek/{dataset}/{sub}/T1w/Diffusion/cm_{hemi}_thesis.mat")[
-                'cm']
+            cm = spio.loadmat(fr"{base_path}/{dataset}/{sub}/T1w/Diffusion/cm_{hemi}_thesis.mat")['cm']
             all_cm[hemi].append(cm)
             cm[cm < 0] = 0
             all_cm[hemi].append(cm)
     return all_cm
+
 
 def get_tck_tracts(tracts, data):
     dif = nib.load(data)
@@ -61,5 +61,5 @@ def get_tck_tracts(tracts, data):
     tck = nib.streamlines.load(tracts)
     tck = tck.tractogram
     tck_converted = tck.apply_affine(np.linalg.inv(dif.affine))
-    st = nib.array([i for i in tck_converted.streamlines])
+    st = np.array([i for i in tck_converted.streamlines])
     return st, pixdim
