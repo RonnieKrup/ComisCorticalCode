@@ -8,7 +8,7 @@ from collections import defaultdict
 import scipy.io as spio
 import networkx as nx
 from glob import glob
-from .PostProcess import File_handling, Network
+from ComisCorticalCode.PostProcess import File_handling, Network
 
 
 def look_around(point, parc):

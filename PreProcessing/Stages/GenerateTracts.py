@@ -1,6 +1,5 @@
-from ComisCorticalCode import toolbox, stage
+from ComisCorticalCode.PreProcessing import toolbox, stage
 import nibabel as nb
-import os
 
 
 class GenerateTracts(stage.Stage):

@@ -1,6 +1,8 @@
 import sys; print(sys.path)
 import os; print(os.getcwd())
-from ComisCorticalCode import Eddy, Resample, Registrations, Segmentation, FiberOrientationDistribution, GenerateTracts, SiftToAtlas, Config, toolbox
+from ComisCorticalCode.PreProcessing import toolbox, Config
+from ComisCorticalCode.PreProcessing.Stages import Resample, Eddy, FiberOrientationDistribution, Registrations, \
+    GenerateTracts, SiftToAtlas, Segmentation
 import os
 
 

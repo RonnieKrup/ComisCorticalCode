@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from ComisCorticalCode import toolbox
+from ComisCorticalCode.PreProcessing import toolbox
 
 
 class BaseStage:

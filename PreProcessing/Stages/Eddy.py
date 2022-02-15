@@ -1,5 +1,5 @@
-from ComisCorticalCode.toolbox import ExternalCommand
-from ComisCorticalCode import stage
+from ComisCorticalCode.PreProcessing.toolbox import ExternalCommand
+from ComisCorticalCode.PreProcessing import stage
 
 import os
 

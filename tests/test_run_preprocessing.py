@@ -3,13 +3,12 @@ import shutil
 
 from unittest import TestCase
 from unittest.mock import patch
-from ComisCorticalCode import run_preprocessing, stage, Config, run_for_sub
+from ComisCorticalCode.PreProcessing import stage, run_preprocessing, run_for_sub, Config
 import tempfile
 
 
 class LocalRunnerInProcess(run_preprocessing.Runner):
     def run_all_subjects(self, config, sub_dirs, out):
-        from ComisCorticalCode import run_for_sub
         for sub_dir in sub_dirs:
             run_for_sub.run_for_sub(sub_dir, config.run_name, out)
 

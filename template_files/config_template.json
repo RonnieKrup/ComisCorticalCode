@@ -1,0 +1,19 @@
+{
+  "minvol": 259209,
+  "DATASET_NAME": "data",
+  "DATA_PATH": "/path/to/data/directory",
+  "STEPSCALE": 0.5,
+  "LENSCALE": [15, 250],
+  "ANGLE": 45,
+  "ntracts": 5000000,
+  "ATLAS": "/path/to/atlas/file.nii",
+  "ATLAS_META": "/path/to/atlas/metadata/file.txt",
+  "atlas_template": "${FSLDIR}/data/standard/MNI152_T1_2mm",
+  "ATLAS_FOR_CONNECTOME": "/path/to/atlas/meta/with/serial/labels.txt",
+  "NTHREADS": 2,
+  "DATAIN": "/path/to/topup/datain.txt",
+  "INDEX": "/path/to/topup/index.txt",
+  "OUT": "/path/to/technical/output/folder",
+  "NJOBS": 50,
+  "ADDITIONAL_PATHS": []
+}

@@ -1,4 +1,4 @@
-from ComisCorticalCode import toolbox, stage
+from ComisCorticalCode.PreProcessing import toolbox, stage
 import os
 import nibabel as nb
 import numpy as np
@@ -80,25 +80,25 @@ class SiftToAtlas(stage.Stage):
                                                                          self.atlas_for_connectome.replace('.txt',
                                                                                                    '_converted.txt'),),
                                                             output_files=(self.connectome_atlas,)),
-            toolbox.ExternalCommand.get_command("tck2connectome", self.tracts, self.connectome_atlas,
-                                                os.path.join(self.temp, 'connectome'), "-force",
+                        toolbox.ExternalCommand.get_command("tck2connectome", self.tracts, self.connectome_atlas,
+                                                            os.path.join(self.temp, 'connectome'), "-force",
                                                 f'-nthreads {self.nthreads}', f'-assignment_radial_search 2',
                                                 f'-out_assignments {self.connectome_out}',
-                                                input_files=(self.connectome_atlas,),
-                                                output_files=(self.connectome_out,)),
-            toolbox.ExternalCommand.get_command("connectome2tck", self.tracts, self.connectome_out, self.atlas_tracts,
+                                                            input_files=(self.connectome_atlas,),
+                                                            output_files=(self.connectome_out,)),
+                        toolbox.ExternalCommand.get_command("connectome2tck", self.tracts, self.connectome_out, self.atlas_tracts,
                                                 "-exclusive", "-keep_self", "-force", f'-nthreads {self.nthreads}',
                                                 f'-nodes {self.list_of_nodes}', f'-files single',
-                                                input_files=(self.tracts, self.connectome_out),
-                                                output_files=(self.atlas_tracts,)),
-            toolbox.ExternalCommand.get_command("tcksift", self.atlas_tracts, self.fod, self.sifted_atlas_tracts,
+                                                            input_files=(self.tracts, self.connectome_out),
+                                                            output_files=(self.atlas_tracts,)),
+                        toolbox.ExternalCommand.get_command("tcksift", self.atlas_tracts, self.fod, self.sifted_atlas_tracts,
                                                 "-force", "-fd_scale_gm", f'-act {self.segmentation}',
                                                 f'-nthreads {self.nthreads}',
                                                 f'-term_number {self.ntracts}',
-                                                input_files=(self.atlas_tracts, self.fod,
+                                                            input_files=(self.atlas_tracts, self.fod,
                                                              self.segmentation),
-                                                output_files=(self.sifted_atlas_tracts,))
-            ]
+                                                            output_files=(self.sifted_atlas_tracts,))
+                        ]
         return commands
 
     @property

@@ -1,4 +1,4 @@
-from ComisCorticalCode import Config, toolbox, stage
+from ComisCorticalCode.PreProcessing import toolbox, stage
 import nibabel as nb
 import numpy as np
 import os
@@ -43,7 +43,7 @@ class Resample(stage.Stage):
             commands = []
         else:
             commands = [
-                        toolbox.ExternalCommand.get_command('mrgrid',  self.raw_data, 'regrid', self.data, "-force",
+                        toolbox.ExternalCommand.get_command('mrgrid', self.raw_data, 'regrid', self.data, "-force",
                                                             f'-nthreads {self.nthreads}',
                                                             f'-scale {(self.minvol / vol) ** (1 / 3)}',
                                                             input_files=(self.raw_data,), output_files=(self.data,))]

@@ -1,5 +1,5 @@
 import os
-from ComisCorticalCode import Config, toolbox, stage
+from ComisCorticalCode.PreProcessing import toolbox, stage
 
 
 class SegmentationStage(stage.Stage):

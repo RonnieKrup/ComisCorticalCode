@@ -1,6 +1,6 @@
 from unittest import TestCase
 from unittest.mock import patch
-from ComisCorticalCode import toolbox
+from ComisCorticalCode.PreProcessing import toolbox
 import os
 import tempfile
 import unittest

@@ -2,8 +2,8 @@ import argparse
 import time
 import os
 from glob import glob
-from ComisCorticalCode import toolbox
-from ComisCorticalCode.Config import Config
+from ComisCorticalCode.PreProcessing import toolbox
+from ComisCorticalCode.PreProcessing.Config import Config
 from subprocess import call
 from shutil import which
 from pathlib import Path
@@ -94,7 +94,7 @@ def make_multiple_sh_files(sub_dirs, run_name, out): # tested
 
 def make_sh_file(subject_path, run_name, out_path): # tested
     my_dir = os.path.dirname(os.path.abspath(__file__))
-    with open(os.path.join(my_dir, 'send_to_q.sh'), 'r') as f:
+    with open(os.path.join(my_dir, '../template_files/send_to_q.sh'), 'r') as f:
         template_file = f.read()
     sub = os.path.split(subject_path)[-1]
     out_sh = os.path.join(out_path, 'sh_files', f'{sub}.sh')

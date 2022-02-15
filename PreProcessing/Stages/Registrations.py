@@ -1,4 +1,4 @@
-from ComisCorticalCode import toolbox, stage
+from ComisCorticalCode.PreProcessing import toolbox, stage
 import os
 
 
