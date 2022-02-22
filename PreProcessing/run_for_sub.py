@@ -1,5 +1,10 @@
-import sys
 import os
+import sys
+
+script_dir = os.path.dirname(__file__)
+mymodule_dir = os.path.join(script_dir, '..', '..')
+sys.path.append(mymodule_dir)
+
 from ComisCorticalCode.PreProcessing import toolbox, Config
 from ComisCorticalCode.PreProcessing.Stages import Resample, Eddy, FiberOrientationDistribution, Registrations, \
     GenerateTracts, SiftToAtlas, Segmentation
