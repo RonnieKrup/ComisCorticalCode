@@ -36,7 +36,8 @@ class ExternalCommand:
         for arg in self.args:
             result.append(str(arg))
         for arg_name, arg_value in self.keyword_args.items():
-            result.append(f'--{arg_name.lower()}={arg_value}')
+            if arg_value is not None:
+                result.append(f'--{arg_name.lower()}={arg_value}')
         self.command = " ".join(result)
 
     @staticmethod
