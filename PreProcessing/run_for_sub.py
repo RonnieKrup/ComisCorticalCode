@@ -37,7 +37,7 @@ def run_for_sub(subject_path, run_name, out_path):
     #os.environ.update(fsl_vars)
     ################################
     paths = toolbox.get_paths(subject_path, run_name)
-    for stage in generate_stages_to_run(config):
+    for stage in generate_stages_to_run():
         s = stage.create_from_dict(paths, config)
         s.run_stage(config.run_list)
         toolbox.clear_dir(paths['temp'])
