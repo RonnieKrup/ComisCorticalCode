@@ -21,7 +21,8 @@ class Eddy(stage.BaseStage):
         self.data = os.path.join(raw_dat, 'data.nii.gz')
         self.env = dict(os.environ)  # Copy the existing environment variables
         self.env['OMP_NUM_THREADS'] = str(nthreads)
-        self.index_datain = index_datain
+        self.datain = index_datain
+        self.index = os.path.join(f'{temp}', "index.txt")
 
     @staticmethod
     def create_from_dict(paths, config):
@@ -67,7 +68,7 @@ class Eddy(stage.BaseStage):
                     ExternalCommand.get_command('fslmerge', '-t', self.merged_b0, self.nodif, self.nodif_pa,
                                                 input_files=(self.nodif, self.nodif_pa),
                                                 output_files=(self.merged_b0,)),
-                    ExternalCommand.get_command('topup', imain=self.merged_b0, datain=self.index_datain[1],
+                    ExternalCommand.get_command('topup', imain=self.merged_b0, datain=self.datain[1],
                                                 config='b02b0.cnf', out=f'{self.topup}out', iout=self.topup,
                                                 fout=f'{self.topup}_fout', input_files=(self.merged_b0,),
                                                 output_files=(f'{self.topup}.nii.gz', f'{self.topup}_fout.nii.gz'))
@@ -91,8 +92,14 @@ class Eddy(stage.BaseStage):
         return commands
 
     def make_commands_eddy(self):
+        with open(self.bvals, 'r') as f:
+            lst = f.read().strip().split(" ")
+        with open(self.index, 'w') as ind:
+            for i in lst:
+                ind.write("1\n")
+
         commands = [ExternalCommand.get_command(f'eddy_openmp', '--data_is_shelled', imain=self.ap,
-                                                mask=self.mask, index=self.index_datain[0], acqp=self.index_datain[1],
+                                                mask=self.mask, index=self.index, acqp=self.datain[1],
                                                 bvecs=self.bvecs, bvals=self.bvals, fwhm=0, topup=f'{self.topup}out',
                                                 flm='quadratic', out=self.data,
                                                 input_files=(self.ap_denoised, self.mask, self.bvecs, self.bvecs,
