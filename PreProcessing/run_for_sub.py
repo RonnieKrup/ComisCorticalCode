@@ -14,13 +14,15 @@ import os
 def generate_stages_to_run():
     stages = [Eddy.Eddy, Resample.Resample, Registrations.RegistrationT12diff, Registrations.RegistrationTemplate2t1,
               Registrations.RegistrationAtlas, Segmentation.Segmentation, Segmentation.SegmentRegistration,
-              FiberOrientationDistribution.FiberOrientationDistribution, GenerateTracts.GenerateTracts,
-              SiftToAtlas.SiftToAtlas]
+              FiberOrientationDistribution.FiberOrientationDistribution, GenerateTracts.GenerateTracts]#,
+              #SiftToAtlas.SiftToAtlas]
     return stages
 
 
 def run_for_sub(subject_path, run_name, out_path):
-    config = Config.Config.from_json(os.path.join(out_path, 'config_files', f'{run_name}.json'))
+
+    config = Config.Config.from_json(os.path.join(out_path, 'config_files', rf"{run_name}.json"))
+    print(os.path.join(out_path, 'config_files', f'{run_name}.json'))
     for extra_program_path in config.additional_paths:
         os.environ['PATH'] += os.pathsep + extra_program_path
 
@@ -50,3 +52,4 @@ if __name__ == '__main__':
                     f'{test_dir}/out')
     else:
         run_for_sub(*sys.argv[1:])
+
