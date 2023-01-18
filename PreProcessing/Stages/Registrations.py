@@ -90,19 +90,19 @@ class RegistrationTemplate2t1(RegistrationStage):
     def make_commands_for_stage(self):
         commands = [
 
-                    toolbox.ExternalCommand.get_command("flirt", f'-ref {self.atlas_template}', f'-in {self.mprage}',
+                    toolbox.ExternalCommand.get_command("flirt", f'-ref {self.atlas_template}', f'-in {self.mprage_brain}',
                                                         f'-omat {self.mprage2template}', output_files=(self.mprage2template,),
-                                                        input_files=(self.atlas_template, self.mprage)),
-                    toolbox.ExternalCommand.get_command("fnirt", In=self.mprage, aff=self.mprage2template,
+                                                        input_files=(self.atlas_template, self.mprage_brain)),
+                    toolbox.ExternalCommand.get_command("fnirt", In=self.mprage_brain, aff=self.mprage2template,
                                                         ref=self.atlas_template, cout=self.mprage2template,
                                                         config=("T1_2_MNI152_2mm" if "2mm" in self.atlas_template
                                                                 else None),
                                                         output_files=(self.mprage2template,),
-                                                        input_files=(self.mprage, self.mprage2template,
+                                                        input_files=(self.mprage_brain, self.mprage2template,
                                                                      self.atlas_template)),
-                    toolbox.ExternalCommand.get_command('invwarp', ref=self.mprage, out=self.template2mprage,
+                    toolbox.ExternalCommand.get_command('invwarp', ref=self.mprage_brain, out=self.template2mprage,
                                                         warp=self.mprage2template, output_files=(self.template2mprage,),
-                                                        input_files=(self.mprage, self.mprage2template))
+                                                        input_files=(self.mprage_brain, self.mprage2template))
                    ]
         return commands
 
@@ -122,9 +122,10 @@ class RegistrationAtlas(RegistrationStage):
 
     def make_commands_for_stage(self):
         commands = [
-                    toolbox.ExternalCommand.get_command("applywarp", ref=self.mprage, In=self.atlas, out=self.sub_atlas,
-                                                        warp=self.template2mprage, interp="nn",
-                                                        input_files=(self.mprage, self.atlas, self.template2mprage),
+                    toolbox.ExternalCommand.get_command("applywarp", ref=self.mprage_brain, In=self.atlas,
+                                                        out=self.sub_atlas, warp=self.template2mprage, interp="nn",
+                                                        input_files=(self.mprage_brain, self.atlas,
+                                                                     self.template2mprage),
                                                         output_files=(self.sub_atlas,)),
                     toolbox.ExternalCommand.get_command("flirt", f"-applyxfm", f'-ref {self.brain}',
                                                         f'-in {self.sub_atlas}', f'-init {self.mprage2diff}',
