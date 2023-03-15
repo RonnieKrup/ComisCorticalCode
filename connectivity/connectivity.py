@@ -24,13 +24,15 @@ def get_cm(sub_path, run_name, filter_labels=None):
         fr'{sub_path}/brain/{run_name}.nii.gz')
 
     labels = nb.load(
-        fr'{sub_path}/atlas/rBNA.nii').get_fdata()
+        fr'{sub_path}/atlas/YS_atlas.nii.gz')
     if filter_labels:
         labels[np.isin(labels, filter_labels)] = 0
-    new_labels, lookup = utils.reduce_labels(labels)
+    new_labels, lookup = utils.reduce_labels(labels.get_fdata())
 
     tracts = load_tractogram(
-        fr'{sub_path}/tracts/{run_name}.tck', data)
+        fr'{sub_path}/tracts/{run_name}.tck', data, bbox_valid_check=False)
+
+    tracts.remove_invalid_streamlines()
     tracts = tracts.streamlines
 
     m, grouping = utils.connectivity_matrix(tracts, data.affine, new_labels, return_mapping=True,
@@ -110,7 +112,7 @@ def devide_cm_into_hemis(cm, lookup):
 
 def create_cms(sub_path, run_name, atlas_path, alternative_save=None):
     if alternative_save is None:
-        alternative_save=run_name
+        alternative_save = run_name
     save_name = os.path.join(sub_path, 'cm', alternative_save)
     Path(os.path.join(sub_path, 'cm')).mkdir(exist_ok=True)
     m, grouping, lookup = get_cm(sub_path, run_name)
@@ -136,11 +138,12 @@ def load_obj(path):
 
 
 def read_atlas(path):
-    aal_stats = pd.read_csv(path, header=None,
-                            names=['num', 'area', 'label', 'hemi'], delimiter=',')
+    #aal_stats = pd.read_csv(path, delimiter=',', index_col=2)
     #aal_stats = pd.read_csv(path, header=None,
     #                        names=['num', 'area', 'hemi', 'size'], delimiter=' ')
-    aal_stats['hemi'] = [i[-1] for i in aal_stats['area']]
+    #aal_stats['hemi'] = [i[-1] for i in aal_stats['ROIname']]
+    aal_stats = pd.read_csv(atlas_path, index_col=0, delimiter='\t', header=None, usecols=[0, 1], names=['label', 'area'])
+    aal_stats['hemi'] = [i[0] for i in aal_stats['area']]
     return aal_stats
 
 
@@ -155,16 +158,22 @@ def show_matrix(matrix, lookup, atlas_path):
     plt.show()
 
 if __name__ == "__main__":
-    subs = glob(r'/path/to/sub/folder')
-    atlas_path = '/path/to/atlas'
-
+    subs = glob(r'/mnt/g/python/g*')
+    #atlas_path = '/mnt/e/ronniek/BN_atlas/BNA_with_cerebellum.csv'
+    atlas_path = '/mnt/e/ronniek/YS_atlas/index2label.txt'
+    run_name = "BN_atlas_big"
     for sub in subs:
-        if os.path.isfile(fr'{sub}/atlas/rBNA.nii'):
+        if os.path.isfile(fr'{sub}/atlas/YS_atlas.nii.gz'):
             try:
-                m, lookup, grouping = create_cms(sub, 'HCP', atlas_path, alternative_save="rBNA")
+                m, lookup, grouping = create_cms(sub, run_name, atlas_path, alternative_save='YS_atlas')
                 print(sub)
             except FileNotFoundError:
-                print(sub + " has no files")
+                print(sub + " has no files, using fixed version instead")
+                try:
+                    m, lookup, grouping = create_cms(sub, 'BN_atlas_fixed', atlas_path, alternative_save='YS_atlas')
+                    print(sub)
+                except FileNotFoundError:
+                    print(sub + "still has no files")
             except ValueError:
                 print(sub + " value error")
             except nb.filebasedimages.ImageFileError:

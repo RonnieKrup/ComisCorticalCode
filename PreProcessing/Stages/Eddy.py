@@ -28,7 +28,7 @@ class Eddy(stage.BaseStage):
     def create_from_dict(paths, config):
         raw_dat = paths["raw_dat"]
         temp = paths["temp"]
-        bv = [paths['bvecs'], paths['bvals']]
+        bv = [paths['bvecs'], f"{paths['raw_data']}/bvals"]
         nthreads = config.nthreads
         index_datain = [config.index, config.datain]
         return Eddy(raw_dat=raw_dat,
