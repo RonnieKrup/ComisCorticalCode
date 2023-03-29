@@ -99,8 +99,8 @@ def get_paths(base_dir, name):
     local_paths = {
         'raw_dat': 'raw_data/',
         'temp': f'temp_{name}/',
-        'bvecs': 'raw_data/bvecs',
-        'bvals': 'raw_data/data.nii.gz.eddy_rotated_bvecs',
+        'bvecs': 'raw_data/data.nii.gz.eddy_rotated_bvecs',
+        'bvals': 'raw_data/bvals',
         'mprage': r'raw_data/mprage.nii.gz',
         "mprage2diff": rf'reg_t12dif/{name}.mat',
         "template2mprage": rf'reg_template2t1/{name}.nii.gz',
