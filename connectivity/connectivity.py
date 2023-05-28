@@ -142,7 +142,7 @@ def read_atlas(path):
     #aal_stats = pd.read_csv(path, header=None,
     #                        names=['num', 'area', 'hemi', 'size'], delimiter=' ')
     #aal_stats['hemi'] = [i[-1] for i in aal_stats['ROIname']]
-    aal_stats = pd.read_csv(atlas_path, index_col=0, delimiter='\t', header=None, usecols=[0, 1], names=['label', 'area'])
+    aal_stats = pd.read_csv(path, index_col=0, delimiter='\t', header=None, usecols=[0, 1], names=['label', 'area'])
     aal_stats['hemi'] = [i[0] for i in aal_stats['area']]
     return aal_stats
 
@@ -159,8 +159,8 @@ def show_matrix(matrix, lookup, atlas_path):
 
 if __name__ == "__main__":
     subs = glob(r'/mnt/g/python/g*')
-    #atlas_path = '/mnt/e/ronniek/BN_atlas/BNA_with_cerebellum.csv'
-    atlas_path = '/mnt/e/ronniek/YS_atlas/index2label.txt'
+    atlas_path = '/mnt/e/ronniek/BN_atlas/BNA_with_cerebellum.csv'
+    #atlas_path = '/mnt/e/ronniek/YS_atlas/index2label.txt'
     run_name = "BN_atlas_big"
     for sub in subs:
         if os.path.isfile(fr'{sub}/atlas/YS_atlas.nii.gz'):
