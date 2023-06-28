@@ -23,8 +23,11 @@ def get_cm(sub_path, run_name, filter_labels=None):
     data = nb.load(
         fr'{sub_path}/brain/{run_name}.nii.gz')
 
-    labels = nb.load(
-        fr'{sub_path}/atlas/YS_atlas.nii.gz')
+    if os.path.isfile(fr'{sub_path}/atlas/YS_atlas.nii.gz'):
+        labels_path = fr'{sub_path}/atlas/YS_atlas.nii.gz'
+    elif os.path.isfile(fr'{sub_path}/atlas/YS_atlas.nii'):
+        labels_path = fr'{sub_path}/atlas/YS_atlas.nii'
+    labels = nb.load(labels_path)
     if filter_labels:
         labels[np.isin(labels, filter_labels)] = 0
     new_labels, lookup = utils.reduce_labels(labels.get_fdata())
@@ -157,23 +160,21 @@ def show_matrix(matrix, lookup, atlas_path):
     plt.xticks(ticks=range(len(area_names)), labels=list(area_names), size=7, rotation=90)
     plt.show()
 
+
 if __name__ == "__main__":
-    subs = glob(r'/mnt/g/python/g*')
-    atlas_path = '/mnt/e/ronniek/BN_atlas/BNA_with_cerebellum.csv'
+    #subs = glob('/mnt/e/ronniek/python_subs/3day/*')
+    subs = glob('/mnt/qnap/HCP/*')
+    #atlas_path = '/mnt/e/ronniek/BN_atlas/BNA_with_cerebellum.csv'
     #atlas_path = '/mnt/e/ronniek/YS_atlas/index2label.txt'
-    run_name = "BN_atlas_big"
+    atlas_path = '/state/partition1/home/ronniek/ronniek/YS_atlas/index2label.txt'
+    run_name = "HCP"
     for sub in subs:
-        if os.path.isfile(fr'{sub}/atlas/YS_atlas.nii.gz'):
+        if os.path.isfile(fr'{sub}/atlas/YS_atlas.nii.gz') or os.path.isfile(fr'{sub}/atlas/YS_atlas.nii'):
             try:
                 m, lookup, grouping = create_cms(sub, run_name, atlas_path, alternative_save='YS_atlas')
                 print(sub)
             except FileNotFoundError:
                 print(sub + " has no files, using fixed version instead")
-                try:
-                    m, lookup, grouping = create_cms(sub, 'BN_atlas_fixed', atlas_path, alternative_save='YS_atlas')
-                    print(sub)
-                except FileNotFoundError:
-                    print(sub + "still has no files")
             except ValueError:
                 print(sub + " value error")
             except nb.filebasedimages.ImageFileError:
